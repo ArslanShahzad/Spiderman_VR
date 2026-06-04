@@ -99,7 +99,6 @@ namespace SpiderMan.Editor
             soSwing.FindProperty("swingMinDist").floatValue     = 3f;
             soSwing.FindProperty("launchForward").floatValue    = 12f;
             soSwing.FindProperty("launchUpward").floatValue     = 8f;
-            soSwing.FindProperty("anchorPullFraction").floatValue = 0.15f;
             soSwing.FindProperty("groundJumpForce").floatValue  = 18f;
             soSwing.FindProperty("groundJumpMaxHeight").floatValue = 1.5f;
             soSwing.FindProperty("groundJumpMaxDist").floatValue   = 6f;
@@ -113,9 +112,13 @@ namespace SpiderMan.Editor
 
             // ── 9. Configure SelfPropulsion ──────────────────────────────────
             var soProp = new SerializedObject(propulsion);
-            soProp.FindProperty("pushForce").floatValue    = 10f;
-            soProp.FindProperty("cooldown").floatValue     = 0.6f;
-            soProp.FindProperty("upwardBias").floatValue   = 0.25f;
+            soProp.FindProperty("pushForce").floatValue        = 10f;
+            soProp.FindProperty("cooldown").floatValue         = 0.6f;
+            soProp.FindProperty("upwardBias").floatValue       = 0.25f;
+            soProp.FindProperty("maxAnchorSpread").floatValue  = 5f;
+            soProp.FindProperty("pullBackThreshold").floatValue = 1.5f;
+            soProp.FindProperty("slingshotForce").floatValue   = 16f;
+            soProp.FindProperty("slingshotUpward").floatValue  = 6f;
             soProp.FindProperty("leftShooter").objectReferenceValue   = leftShooter;
             soProp.FindProperty("rightShooter").objectReferenceValue  = rightShooter;
             soProp.FindProperty("swingPhysics").objectReferenceValue  = swing;

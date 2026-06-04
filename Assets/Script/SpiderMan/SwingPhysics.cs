@@ -80,6 +80,12 @@ namespace SpiderMan
         [Tooltip("Layers that count as ground. Default = Everything.")]
         [SerializeField] LayerMask groundLayers = ~0;
 
+        [Header("Dual-Web Slingshot")]
+        [Tooltip("Maximum distance (m) between both anchor points for slingshot mode. " +
+                 "When both anchors are within this spread, auto-launch and grapple are suppressed — " +
+                 "SelfPropulsion's pull-back gesture fires the launch instead.")]
+        [SerializeField] float slingshotAnchorSpread = 5f;
+
         [Header("References")]
         [Tooltip("WebShooter component on the Left Controller.")]
         [SerializeField] WebShooter leftShooter;
@@ -96,6 +102,10 @@ namespace SpiderMan
 
         /// True when at least one web is in swing mode (high + far anchor).
         public bool IsSwinging => _leftSwing || _rightSwing;
+
+        /// True when both webs are active and their anchor points are within slingshotAnchorSpread.
+        /// SelfPropulsion reads this to decide whether to use the gesture-based launch.
+        public bool IsSlingshotArmed { get; private set; }
 
         // True as long as EITHER trigger is held — used to suppress XR gravity.
         bool AnyWebHeld =>
@@ -137,6 +147,12 @@ namespace SpiderMan
         // so our final position write always wins.
         void LateUpdate()
         {
+            // Compute slingshot state first — ProcessWebAttachments and CheckDualWebCases both read it.
+            IsSlingshotArmed = leftShooter  != null && leftShooter.IsWebActive
+                            && rightShooter != null && rightShooter.IsWebActive
+                            && Vector3.Distance(leftShooter.AnchorPoint, rightShooter.AnchorPoint)
+                               <= slingshotAnchorSpread;
+
             bool webHeld = AnyWebHeld;
 
             // XR IT components are only allowed while the player is grounded AND no web is held.
@@ -171,14 +187,19 @@ namespace SpiderMan
                 // Constraint only fires when player swings past this radius — no first-frame snap.
                 _leftLen   = Vector3.Distance(transform.position, leftShooter.AnchorPoint);
                 _leftSwing = IsSwingAnchor(leftShooter.AnchorPoint);
-                if (_leftSwing) Launch();
+                // Suppress auto-launch when the right web is already active.
+                // The dual-web slingshot is gesture-controlled via SelfPropulsion — no automatic push.
+                bool rightAlreadyActive = rightShooter != null && rightShooter.IsWebActive;
+                if (_leftSwing && !rightAlreadyActive) Launch();
             }
 
             if (r && !_rightPrev)
             {
                 _rightLen   = Vector3.Distance(transform.position, rightShooter.AnchorPoint);
                 _rightSwing = IsSwingAnchor(rightShooter.AnchorPoint);
-                if (_rightSwing) Launch();
+                // Suppress auto-launch when the left web is already active.
+                bool leftAlreadyActive = leftShooter != null && leftShooter.IsWebActive;
+                if (_rightSwing && !leftAlreadyActive) Launch();
             }
 
             // On the frame a swinging web is released, guarantee a minimum upward speed
@@ -228,6 +249,10 @@ namespace SpiderMan
             bool l = leftShooter  != null && leftShooter.IsWebActive;
             bool r = rightShooter != null && rightShooter.IsWebActive;
             if (!l || !r) return;
+
+            // Slingshot mode: both anchors close together.
+            // SelfPropulsion owns the launch — suppress every auto-behavior here.
+            if (IsSlingshotArmed) return;
 
             // Long jump — both anchors on the ground near the player's feet
             if (_groundJumpReady
