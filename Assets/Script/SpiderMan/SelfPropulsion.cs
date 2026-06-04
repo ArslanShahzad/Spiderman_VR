@@ -196,13 +196,22 @@ namespace SpiderMan
 
         void ExecuteSlingshot()
         {
-            // If both webs share the same moveable Rigidbody, pull it toward the player.
-            // Otherwise, push the player forward as normal.
-            Rigidbody sharedRb = leftShooter != null ? leftShooter.AnchorRigidbody : null;
-            bool pullObject = sharedRb != null
-                           && !sharedRb.isKinematic
-                           && rightShooter != null
-                           && rightShooter.AnchorRigidbody == sharedRb;
+            // Determine if both webs are on the same moveable Rigidbody.
+            // Primary check: same Rigidbody component reference.
+            // Fallback: same AnchorObject (covers compound-collider setups where
+            //   GetComponentInParent may return different Rigidbody instances on sub-hierarchies).
+            Rigidbody sharedRb = leftShooter  != null ? leftShooter.AnchorRigidbody  : null;
+            Rigidbody rightRb  = rightShooter != null ? rightShooter.AnchorRigidbody : null;
+
+            bool sameRb  = sharedRb != null && sharedRb == rightRb && !sharedRb.isKinematic;
+            bool sameObj = !sameRb
+                        && leftShooter  != null && leftShooter.AnchorObject  != null
+                        && rightShooter != null
+                        && leftShooter.AnchorObject == rightShooter.AnchorObject
+                        && rightRb != null && !rightRb.isKinematic;
+
+            bool pullObject = sameRb || sameObj;
+            if (sameObj) sharedRb = rightRb; // use the rb we found via AnchorObject path
 
             if (pullObject)
             {

@@ -138,10 +138,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::SpiderMan.SelfPropulsion
   pushForce: 10
   cooldown: 0.6
-  upwardBias: 0.25
-  pullBackThreshold: 1.5
-  slingshotForce: 16
-  slingshotUpward: 6
+  upwardBias: 0.5
+  pullBackThreshold: 1
+  slingshotForce: 25
+  slingshotUpward: 15
   leftShooter: {fileID: 1099952853}
   rightShooter: {fileID: 1597244936}
   swingPhysics: {fileID: 47367079}
@@ -157,14 +157,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cfa873bfb7a52f640bdfa3b6096b6968, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SpiderMan.SwingPhysics
-  gravity: 8
+  gravity: 3
   maxSpeed: 15
   airDrag: 0.005
   swingGravityScale: 0.1
   swingMinHeight: 4
   swingMinDist: 1
-  launchForward: 12
-  launchUpward: 8
   releaseUpBoost: 5
   groundJumpForce: 18
   groundJumpMaxHeight: 1.5
@@ -173,13 +171,15 @@ MonoBehaviour:
   dualPullSpeed: 16
   dualGrabDistance: 1.2
   groundRadius: 0.15
-  launchGroundThreshold: 3
   groundLayers:
     serializedVersion: 2
     m_Bits: 4294967295
   slingshotAnchorSpread: 5
+  rotationDeadZone: 5
+  rotationSpeed: 3
   leftShooter: {fileID: 1099952853}
   rightShooter: {fileID: 1597244936}
+  wallClimber: {fileID: 0}
 --- !u!1 &57665232
 GameObject:
   m_ObjectHideFlags: 0
@@ -1341,7 +1341,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1717954561962503726, guid: f6336ac4ac8b4d34bc5072418cdc62a0, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 27.353168
+      value: 27.026
       objectReference: {fileID: 0}
     - target: {fileID: 1717954561962503726, guid: f6336ac4ac8b4d34bc5072418cdc62a0, type: 3}
       propertyPath: m_LocalPosition.z
@@ -2310,13 +2310,17 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::SpiderMan.WebShooter
   isLeftHand: 1
   triggerThreshold: 0.7
-  maxWebDistance: 40
+  maxWebDistance: 60
   webAttachLayers:
     serializedVersion: 2
     m_Bits: 4294967295
   webOriginPoint: {fileID: 673617563}
   webColor: {r: 0.88, g: 0.95, b: 1, a: 1}
   webSag: 0.04
+  anchorSpringStiffness: 200
+  anchorSpringDamping: 14
+  sagSpringStiffness: 8
+  sagSpringDamping: 3
 --- !u!1 &1147521561
 GameObject:
   m_ObjectHideFlags: 0
@@ -3592,13 +3596,17 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::SpiderMan.WebShooter
   isLeftHand: 0
   triggerThreshold: 0.7
-  maxWebDistance: 40
+  maxWebDistance: 60
   webAttachLayers:
     serializedVersion: 2
     m_Bits: 4294967295
   webOriginPoint: {fileID: 1782492693}
   webColor: {r: 0.88, g: 0.95, b: 1, a: 1}
   webSag: 0.04
+  anchorSpringStiffness: 200
+  anchorSpringDamping: 14
+  sagSpringStiffness: 8
+  sagSpringDamping: 3
 --- !u!114 &1597244937
 MonoBehaviour:
   m_ObjectHideFlags: 0

@@ -55,6 +55,8 @@ namespace SpiderMan.Editor
             var rightPull    = GetOrAdd<ObjectPullGrab>(rightCtrl);
             var swing        = GetOrAdd<SwingPhysics>(xrOrigin);
             var propulsion   = GetOrAdd<SelfPropulsion>(xrOrigin);
+            var climber      = GetOrAdd<WallClimber>(xrOrigin);
+            var tether       = GetOrAdd<WebTether>(xrOrigin);
 
             // ── 4. Configure WebShooter – Left ───────────────────────────────
             var soLeft = new SerializedObject(leftShooter);
@@ -107,7 +109,21 @@ namespace SpiderMan.Editor
             soSwing.FindProperty("groundRadius").floatValue     = 0.15f;
             soSwing.FindProperty("leftShooter").objectReferenceValue  = leftShooter;
             soSwing.FindProperty("rightShooter").objectReferenceValue = rightShooter;
+            soSwing.FindProperty("wallClimber").objectReferenceValue  = climber;
+            soSwing.FindProperty("webTether").objectReferenceValue    = tether;
             soSwing.ApplyModifiedProperties();
+
+            // ── 9b. Configure WallClimber ────────────────────────────────────
+            var soClimb = new SerializedObject(climber);
+            soClimb.FindProperty("leftController").objectReferenceValue  = leftCtrl.transform;
+            soClimb.FindProperty("rightController").objectReferenceValue = rightCtrl.transform;
+            soClimb.ApplyModifiedProperties();
+
+            // ── 9c. Configure WebTether ──────────────────────────────────────
+            var soTether = new SerializedObject(tether);
+            soTether.FindProperty("leftShooter").objectReferenceValue  = leftShooter;
+            soTether.FindProperty("rightShooter").objectReferenceValue = rightShooter;
+            soTether.ApplyModifiedProperties();
 
             // ── 9. Configure SelfPropulsion ──────────────────────────────────
             var soProp = new SerializedObject(propulsion);
@@ -133,7 +149,7 @@ namespace SpiderMan.Editor
             EditorUtility.DisplayDialog("SpiderMan Setup",
                 "Setup complete!\n\n" +
                 "Components attached to:\n" +
-                $"  • {xrOrigin.name}  →  SwingPhysics, SelfPropulsion\n" +
+                $"  • {xrOrigin.name}  →  SwingPhysics, SelfPropulsion, WallClimber\n" +
                 $"  • {leftCtrl.name}  →  WebShooter (Left), ObjectPullGrab (Left)\n" +
                 $"  • {rightCtrl.name} →  WebShooter (Right), ObjectPullGrab (Right)\n\n" +
                 "Child transforms created:\n" +

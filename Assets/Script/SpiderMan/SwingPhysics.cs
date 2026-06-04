@@ -76,12 +76,27 @@ namespace SpiderMan
                  "SelfPropulsion's pull-back gesture fires the launch instead.")]
         [SerializeField] float slingshotAnchorSpread = 5f;
 
+        [Header("Airborne Rotation")]
+        [Tooltip("Camera must face more than this many degrees away from the XR Origin forward " +
+                 "before auto-rotation kicks in. Acts as a look dead zone while airborne.")]
+        [SerializeField, Range(0f, 60f)] float rotationDeadZone = 30f;
+
+        [Tooltip("Speed (degrees/s) at which the XR Origin rotates to follow the camera once " +
+                 "the dead zone is exceeded.")]
+        [SerializeField] float rotationSpeed = 60f;
+
         [Header("References")]
         [Tooltip("WebShooter component on the Left Controller.")]
         [SerializeField] WebShooter leftShooter;
 
         [Tooltip("WebShooter component on the Right Controller.")]
         [SerializeField] WebShooter rightShooter;
+
+        [Tooltip("WallClimber component on this XR Origin. Optional — leave empty if not using wall climbing.")]
+        [SerializeField] WallClimber wallClimber;
+
+        [Tooltip("WebTether component on this XR Origin. Optional — leave empty if not using web tethering.")]
+        [SerializeField] WebTether webTether;
 
         // ── Public API ───────────────────────────────────────────────────────
         /// Current player velocity in world space.
@@ -137,11 +152,52 @@ namespace SpiderMan
         // so our final position write always wins.
         void LateUpdate()
         {
+            // ── Wall climbing (highest priority — suppresses all other movement) ──
+            if (wallClimber != null && wallClimber.IsClimbing)
+            {
+                Velocity = Vector3.zero;
+                IsSlingshotArmed = false;
+
+                // Keep XRIT disabled while climbing so GravityProvider doesn't fight us
+                foreach (var mb in _xrGravityBehaviours)
+                    if (mb != null) mb.enabled = false;
+
+                IsGrounded = Physics.CheckSphere(
+                    transform.position + Vector3.down * 0.05f,
+                    groundRadius, groundLayers, QueryTriggerInteraction.Ignore);
+
+                Vector3 climbDelta = wallClimber.ConsumeClimbDelta();
+                if (_cc != null && _cc.enabled)
+                    _cc.Move(climbDelta);
+                else
+                    transform.position += climbDelta;
+
+                ApplyAirborneRotation();
+                return;
+            }
+
             // Compute slingshot state first — ProcessWebAttachments and CheckDualWebCases both read it.
-            IsSlingshotArmed = leftShooter  != null && leftShooter.IsWebActive
-                            && rightShooter != null && rightShooter.IsWebActive
-                            && Vector3.Distance(leftShooter.AnchorPoint, rightShooter.AnchorPoint)
-                               <= slingshotAnchorSpread;
+            bool lActive = leftShooter  != null && leftShooter.IsWebActive;
+            bool rActive = rightShooter != null && rightShooter.IsWebActive;
+
+            bool anchorsClose = lActive && rActive
+                && Vector3.Distance(leftShooter.AnchorPoint, rightShooter.AnchorPoint) <= slingshotAnchorSpread;
+
+            Rigidbody lRb = lActive ? leftShooter.AnchorRigidbody  : null;
+            Rigidbody rRb = rActive ? rightShooter.AnchorRigidbody : null;
+
+            // Arm when both webs hit the same moveable Rigidbody (pull-object gesture).
+            bool sameMoveable = lRb != null && lRb == rRb && !lRb.isKinematic;
+
+            // Tether case: one web on a static surface, one on a DIFFERENT Rigidbody.
+            // WebTether owns this scenario — suppress slingshot so the gesture doesn't misfire.
+            bool lStatic  = lActive && (lRb == null || lRb.isKinematic);
+            bool rStatic  = rActive && (rRb == null || rRb.isKinematic);
+            bool lMovable = lActive && lRb != null && !lRb.isKinematic;
+            bool rMovable = rActive && rRb != null && !rRb.isKinematic;
+            bool isTetherCase = (lStatic && rMovable) || (lMovable && rStatic);
+
+            IsSlingshotArmed = !isTetherCase && (anchorsClose || sameMoveable);
 
             bool webHeld = AnyWebHeld;
 
@@ -163,6 +219,7 @@ namespace SpiderMan
             MovePlayer();
             EnforceSwingConstraints(); // after move so constraint acts on the real new position
             TickDualPull();
+            ApplyAirborneRotation();
         }
 
         // ── Web attachment processing ─────────────────────────────────────────
@@ -392,6 +449,28 @@ namespace SpiderMan
                 _cc.Move(Velocity * Time.deltaTime);
             else
                 transform.position += Velocity * Time.deltaTime;
+        }
+
+        // ── Airborne rotation ────────────────────────────────────────────────
+        // While not grounded, gradually rotates the XR Origin so it faces the camera's
+        // look direction once the player has turned past rotationDeadZone degrees.
+        // Rotates around the camera world position so the player's view stays centred.
+        void ApplyAirborneRotation()
+        {
+            if (IsGrounded) return;
+
+            Vector3 camFlat = new Vector3(_xrCamera.forward.x, 0f, _xrCamera.forward.z);
+            Vector3 fwdFlat = new Vector3(transform.forward.x,  0f, transform.forward.z);
+            if (camFlat.sqrMagnitude < 0.01f || fwdFlat.sqrMagnitude < 0.01f) return;
+
+            float angle = Vector3.SignedAngle(fwdFlat.normalized, camFlat.normalized, Vector3.up);
+            if (Mathf.Abs(angle) <= rotationDeadZone) return;
+
+            // Rotate at a fixed speed, capped so we never overshoot the dead-zone edge
+            float maxStep = Mathf.Abs(angle) - rotationDeadZone;
+            float step    = Mathf.Min(rotationSpeed * Time.deltaTime, maxStep) * Mathf.Sign(angle);
+
+            transform.RotateAround(_xrCamera.position, Vector3.up, step);
         }
 
         // ── Public API ───────────────────────────────────────────────────────
