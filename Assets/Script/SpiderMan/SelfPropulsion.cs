@@ -72,10 +72,13 @@ namespace SpiderMan
 
             bool slingshotArmed = swingPhysics != null && swingPhysics.IsSlingshotArmed;
 
-            if (!slingshotArmed)
-                ReadPrimaryButton();          // single-web / jump push
+            if (slingshotArmed)
+                CheckSlingshotGesture();      // both webs close — pull back both to slingshot
             else
-                CheckSlingshotGesture();      // gesture-based dual-web launch
+            {
+                CheckSingleWebLaunch();       // one web — pull back that controller to swing-launch
+                ReadPrimaryButton();          // button: push away from anchor, or jump if no web
+            }
         }
 
         // ── Device polling ───────────────────────────────────────────────────
@@ -150,6 +153,25 @@ namespace SpiderMan
             _lastPush = Time.time;
         }
 
+        // ── Single-web swing launch (gesture) ────────────────────────────────
+        // Exactly one web must be active. When that controller is pulled back
+        // (moving away from its anchor) past pullBackThreshold, launch forward+up.
+        void CheckSingleWebLaunch()
+        {
+            bool l = leftShooter  != null && leftShooter.IsWebActive;
+            bool r = rightShooter != null && rightShooter.IsWebActive;
+            if (l == r) return; // need exactly one web (both or neither → not this path)
+
+            if (Time.time - _lastPush < cooldown) return;
+
+            float pull = l
+                ? PullBackSpeed(leftShooter.transform,  leftShooter.AnchorPoint,  _leftVel)
+                : PullBackSpeed(rightShooter.transform, rightShooter.AnchorPoint, _rightVel);
+
+            if (pull >= pullBackThreshold)
+                ExecuteSlingshot();
+        }
+
         // ── Dual-web slingshot (gesture) ─────────────────────────────────────
         void CheckSlingshotGesture()
         {
@@ -174,15 +196,31 @@ namespace SpiderMan
 
         void ExecuteSlingshot()
         {
-            Camera cam = Camera.main;
-            Vector3 fwd = cam != null ? cam.transform.forward : transform.forward;
-            fwd = new Vector3(fwd.x, 0f, fwd.z);
-            if (fwd.sqrMagnitude < 0.01f)
-                fwd = new Vector3(transform.forward.x, 0f, transform.forward.z);
-            fwd.Normalize();
+            // If both webs share the same moveable Rigidbody, pull it toward the player.
+            // Otherwise, push the player forward as normal.
+            Rigidbody sharedRb = leftShooter != null ? leftShooter.AnchorRigidbody : null;
+            bool pullObject = sharedRb != null
+                           && !sharedRb.isKinematic
+                           && rightShooter != null
+                           && rightShooter.AnchorRigidbody == sharedRb;
 
-            Vector3 impulse = fwd * slingshotForce + Vector3.up * slingshotUpward;
-            if (swingPhysics != null) swingPhysics.AddImpulse(impulse);
+            if (pullObject)
+            {
+                if (swingPhysics != null) swingPhysics.BeginDualPull(sharedRb);
+            }
+            else
+            {
+                Camera cam = Camera.main;
+                Vector3 fwd = cam != null ? cam.transform.forward : transform.forward;
+                fwd = new Vector3(fwd.x, 0f, fwd.z);
+                if (fwd.sqrMagnitude < 0.01f)
+                    fwd = new Vector3(transform.forward.x, 0f, transform.forward.z);
+                fwd.Normalize();
+
+                Vector3 impulse = fwd * slingshotForce + Vector3.up * slingshotUpward;
+                if (swingPhysics != null) swingPhysics.AddImpulse(impulse);
+            }
+
             _lastPush = Time.time;
         }
 

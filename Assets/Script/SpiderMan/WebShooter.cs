@@ -5,7 +5,9 @@ using UnityEngine.XR;
 namespace SpiderMan
 {
     /// Fires a web from the controller tip on Trigger press.
-    /// Draws a three-point LineRenderer (hand → sag midpoint → anchor).
+    /// Draws a 5-point catenary LineRenderer with spring-simulated elasticity:
+    ///   • The visual tip springs from the hand to the anchor on attach (shoot-out feel).
+    ///   • The sag springs from 0 to its resting value and oscillates (elastic bounce).
     /// Exposes AnchorPoint, AnchorObject, and AnchorRigidbody so SwingPhysics
     /// can determine swing mode, ground jump, and dual-web grab logic.
     [AddComponentMenu("SpiderMan/Web Shooter")]
@@ -34,8 +36,22 @@ namespace SpiderMan
         [Tooltip("Colour of the web strand rendered by the LineRenderer.")]
         [SerializeField] Color webColor = new Color(0.88f, 0.95f, 1f);
 
-        [Tooltip("How much the web sags per metre of length (0 = perfectly taut wire look, 0.1 = loose rope look).")]
+        [Tooltip("Resting sag per metre of web length (0 = taut wire, 0.1 = loose rope).")]
         [SerializeField, Range(0f, 0.3f)] float webSag = 0.04f;
+
+        [Header("Web Spring  (visual only)")]
+        [Tooltip("Stiffness of the spring pulling the visual tip to the real anchor. " +
+                 "Higher = tip snaps faster; lower = slower shoot-out animation.")]
+        [SerializeField, Range(50f, 600f)] float anchorSpringStiffness = 200f;
+
+        [Tooltip("Damping on the anchor spring. Lower values give more bounce after snap.")]
+        [SerializeField, Range(1f, 40f)] float anchorSpringDamping = 14f;
+
+        [Tooltip("Stiffness of the spring driving the sag. Lower = slower, bouncier sag settle.")]
+        [SerializeField, Range(1f, 20f)] float sagSpringStiffness = 8f;
+
+        [Tooltip("Damping on the sag spring. Lower values let the sag bounce longer.")]
+        [SerializeField, Range(0.5f, 15f)] float sagSpringDamping = 3f;
 
         // ── Public API ───────────────────────────────────────────────────────
         /// True while the trigger is held and the web is attached to a surface.
@@ -59,6 +75,14 @@ namespace SpiderMan
         LineRenderer _line;
         InputDevice  _device;
         bool         _triggerDown;
+
+        // Spring state for the visual anchor tip
+        Vector3 _visualAnchor;
+        Vector3 _visualAnchorVel;
+
+        // Spring state for the sag amount
+        float _currentSag;
+        float _sagVel;
 
         // ── Unity lifecycle ──────────────────────────────────────────────────
         void Awake() => BuildLineRenderer();
@@ -105,6 +129,12 @@ namespace SpiderMan
 
                 IsWebActive   = true;
                 _line.enabled = true;
+
+                // Visual spring starts at the hand so the tip travels to the anchor
+                _visualAnchor    = ShootOrigin;
+                _visualAnchorVel = Vector3.zero;
+                _currentSag      = 0f;
+                _sagVel          = 0f;
             }
         }
 
@@ -123,17 +153,40 @@ namespace SpiderMan
         void UpdateLine()
         {
             Vector3 start = ShootOrigin;
-            Vector3 end   = AnchorPoint;
-            float   dist  = (end - start).magnitude;
-            float   sag   = dist * webSag;
 
+            // ── Anchor spring ─────────────────────────────────────────────────
+            // Visual tip chases the real anchor with spring physics.
+            // On first frames it travels from the hand, creating the shoot-out animation.
+            // While swinging, inertia makes it lag and snap back, giving an elastic stretch.
+            _visualAnchorVel += (AnchorPoint - _visualAnchor) * (anchorSpringStiffness * Time.deltaTime);
+            _visualAnchorVel *= Mathf.Clamp01(1f - anchorSpringDamping * Time.deltaTime);
+            _visualAnchor    += _visualAnchorVel * Time.deltaTime;
+
+            Vector3 end  = _visualAnchor;
+            float   dist = (end - start).magnitude;
+
+            // ── Sag spring ────────────────────────────────────────────────────
+            // Sag starts at 0 on attach and bounces to its resting value.
+            float targetSag = dist * webSag;
+            _sagVel     += (targetSag - _currentSag) * (sagSpringStiffness * Time.deltaTime);
+            _sagVel     *= Mathf.Clamp01(1f - sagSpringDamping * Time.deltaTime);
+            _currentSag += _sagVel * Time.deltaTime;
+            _currentSag  = Mathf.Max(_currentSag, 0f);
+
+            // ── Width pulse ───────────────────────────────────────────────────
             float pulse = 0.016f + Mathf.Sin(Time.time * 9f) * 0.003f;
             _line.startWidth = pulse;
             _line.endWidth   = 0.005f;
 
-            _line.SetPosition(0, start);
-            _line.SetPosition(1, (start + end) * 0.5f + Vector3.down * sag);
-            _line.SetPosition(2, end);
+            // ── 5-point smooth catenary ───────────────────────────────────────
+            // Sin curve peaks at the midpoint (t=0.5), giving a natural droop shape.
+            for (int i = 0; i < 5; i++)
+            {
+                float   t    = i / 4f;
+                Vector3 pt   = Vector3.Lerp(start, end, t);
+                float   droop = _currentSag * Mathf.Sin(t * Mathf.PI);
+                _line.SetPosition(i, pt + Vector3.down * droop);
+            }
         }
 
         void BuildLineRenderer()
@@ -142,7 +195,7 @@ namespace SpiderMan
             go.transform.SetParent(transform, false);
             _line = go.AddComponent<LineRenderer>();
 
-            _line.positionCount     = 3;
+            _line.positionCount     = 5;
             _line.useWorldSpace     = true;
             _line.textureMode       = LineTextureMode.Tile;
             _line.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;

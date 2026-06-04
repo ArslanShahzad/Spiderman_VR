@@ -5,8 +5,9 @@ using UnityEngine;
 namespace SpiderMan
 {
     /// Moves the XR Origin with manual pendulum physics.
+    /// Uses CharacterController.Move() for ground-collision-aware movement.
     /// Suppresses the XR Interaction Toolkit GravityProvider and DynamicMoveProvider
-    /// while a web is held so their CharacterController.Move() calls cannot fight us.
+    /// while a web is held so their Move() calls cannot interfere.
     [RequireComponent(typeof(XROrigin))]
     [AddComponentMenu("SpiderMan/Swing Physics")]
     public class SwingPhysics : MonoBehaviour
@@ -35,14 +36,7 @@ namespace SpiderMan
         [Tooltip("Anchor must be at least this many metres away to qualify as a swing anchor.")]
         [SerializeField] float swingMinDist = 3f;
 
-        [Header("Auto Launch (fires once when swing web attaches)")]
-        [Tooltip("Horizontal speed (m/s) added in the camera's facing direction on web attach. " +
-                 "This is the tangential velocity that creates the pendulum arc.")]
-        [SerializeField] float launchForward = 12f;
-
-        [Tooltip("Upward speed (m/s) added on web attach to lift the player into the arc.")]
-        [SerializeField] float launchUpward = 8f;
-
+        [Header("Release Boost  (fires when a swing web is released)")]
         [Tooltip("Minimum upward speed (m/s) guaranteed the moment a swing web is released. " +
                  "Prevents an immediate drop and gives the Spider-Man momentum-carry feel. " +
                  "If the player is already moving faster upward, this is ignored.")]
@@ -72,10 +66,6 @@ namespace SpiderMan
         [Header("Ground Detection")]
         [Tooltip("Radius of the sphere used to detect the ground beneath the XR Origin.")]
         [SerializeField] float groundRadius = 0.15f;
-
-        [Tooltip("Maximum height (m) above the ground at which the launch impulse still fires on web attach. " +
-                 "Above this height the web attaches silently into a swing without the boost.")]
-        [SerializeField] float launchGroundThreshold = 1f;
 
         [Tooltip("Layers that count as ground. Default = Everything.")]
         [SerializeField] LayerMask groundLayers = ~0;
@@ -187,19 +177,12 @@ namespace SpiderMan
                 // Constraint only fires when player swings past this radius — no first-frame snap.
                 _leftLen   = Vector3.Distance(transform.position, leftShooter.AnchorPoint);
                 _leftSwing = IsSwingAnchor(leftShooter.AnchorPoint);
-                // Suppress auto-launch when the right web is already active.
-                // The dual-web slingshot is gesture-controlled via SelfPropulsion — no automatic push.
-                bool rightAlreadyActive = rightShooter != null && rightShooter.IsWebActive;
-                if (_leftSwing && !rightAlreadyActive) Launch();
             }
 
             if (r && !_rightPrev)
             {
                 _rightLen   = Vector3.Distance(transform.position, rightShooter.AnchorPoint);
                 _rightSwing = IsSwingAnchor(rightShooter.AnchorPoint);
-                // Suppress auto-launch when the left web is already active.
-                bool leftAlreadyActive = leftShooter != null && leftShooter.IsWebActive;
-                if (_rightSwing && !leftAlreadyActive) Launch();
             }
 
             // On the frame a swinging web is released, guarantee a minimum upward speed
@@ -225,22 +208,6 @@ namespace SpiderMan
             float dY   = anchor.y - transform.position.y;
             float dist = Vector3.Distance(transform.position, anchor);
             return dY >= swingMinHeight && dist >= swingMinDist;
-        }
-
-        // Fires once when a qualifying web attaches.
-        // Forward is ALWAYS added — creates the tangential velocity for the pendulum arc.
-        // Upward is only added when near the ground so the player doesn't rocket higher
-        // when they attach a new web while already airborne mid-swing.
-        void Launch()
-        {
-            Vector3 forward = new Vector3(_xrCamera.forward.x, 0f, _xrCamera.forward.z);
-            if (forward.sqrMagnitude < 0.01f)
-                forward = new Vector3(transform.forward.x, 0f, transform.forward.z);
-            forward.Normalize();
-
-            Velocity += forward * launchForward;
-            if (IsNearGround())
-                Velocity += Vector3.up * launchUpward;
         }
 
         // ── Special dual-web cases ────────────────────────────────────────────
@@ -293,15 +260,6 @@ namespace SpiderMan
                 new Vector3(anchor.x, transform.position.y, anchor.z), transform.position);
             return dY < groundJumpMaxHeight && horizD < groundJumpMaxDist;
         }
-
-        // True when the player is on the ground or there is ground directly below within
-        // launchGroundThreshold metres. Uses a downward raycast so only floor below counts
-        // (walls beside the player at height do NOT trigger this).
-        bool IsNearGround() =>
-            IsGrounded ||
-            Physics.Raycast(transform.position, Vector3.down,
-                            launchGroundThreshold, groundLayers,
-                            QueryTriggerInteraction.Ignore);
 
         // Called the frame a swinging web is released.
         // Lifts the upward velocity to at least releaseUpBoost so the player arcs
@@ -424,18 +382,24 @@ namespace SpiderMan
                 return;
             }
 
-            // Briefly disable the CharacterController so our transform.position
-            // write is not fought or overridden by the CC's internal resolution.
-            bool ccWasEnabled = _cc != null && _cc.enabled;
-            if (ccWasEnabled) _cc.enabled = false;
-
-            transform.position += Velocity * Time.deltaTime;
-
-            if (ccWasEnabled) _cc.enabled = true;
+            // Use CharacterController.Move() so Unity's collision resolution stops the
+            // player at ground and wall surfaces during a swing arc.
+            // GravityProvider and DynamicMoveProvider are already disabled while webHeld,
+            // so they cannot issue competing Move() calls.
+            // EnforceSwingConstraints() writes transform.position directly after this;
+            // the CC picks up the corrected position automatically on the next Move() call.
+            if (_cc != null && _cc.enabled)
+                _cc.Move(Velocity * Time.deltaTime);
+            else
+                transform.position += Velocity * Time.deltaTime;
         }
 
         // ── Public API ───────────────────────────────────────────────────────
         /// Apply an instantaneous velocity change (called by SelfPropulsion).
         public void AddImpulse(Vector3 impulse) => Velocity += impulse;
+
+        /// Start pulling a Rigidbody toward the player (called by SelfPropulsion on slingshot gesture).
+        /// TickDualPull() will move it each frame and snap it once it is within dualGrabDistance.
+        public void BeginDualPull(Rigidbody target) => _dualPullTarget = target;
     }
 }

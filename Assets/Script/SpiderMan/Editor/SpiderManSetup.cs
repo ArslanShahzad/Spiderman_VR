@@ -97,8 +97,7 @@ namespace SpiderMan.Editor
             soSwing.FindProperty("airDrag").floatValue          = 0.008f;
             soSwing.FindProperty("swingMinHeight").floatValue   = 1.5f;
             soSwing.FindProperty("swingMinDist").floatValue     = 3f;
-            soSwing.FindProperty("launchForward").floatValue    = 12f;
-            soSwing.FindProperty("launchUpward").floatValue     = 8f;
+            soSwing.FindProperty("releaseUpBoost").floatValue   = 4f;
             soSwing.FindProperty("groundJumpForce").floatValue  = 18f;
             soSwing.FindProperty("groundJumpMaxHeight").floatValue = 1.5f;
             soSwing.FindProperty("groundJumpMaxDist").floatValue   = 6f;
