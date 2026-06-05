@@ -39,6 +39,17 @@ namespace SpiderMan
         [Tooltip("Upward speed (m/s) added on slingshot launch.")]
         [SerializeField] float slingshotUpward = 6f;
 
+        [Header("Swing Pull Boost  (continuous, gesture-based)")]
+        [Tooltip("Minimum backward hand speed (m/s, body-relative) before the boost kicks in.")]
+        [SerializeField] float swingPullThreshold = 0.5f;
+
+        [Tooltip("How much each m/s of backward hand speed translates into forward force (N per m/s). " +
+                 "Like tightening your grip mid-swing to add momentum.")]
+        [SerializeField] float swingPullBoostScale = 4f;
+
+        [Tooltip("Maximum continuous forward force (N) that the pull boost can contribute per second.")]
+        [SerializeField] float maxSwingPullForce = 8f;
+
         [Header("References")]
         [Tooltip("WebShooter component on the Left Controller.")]
         [SerializeField] WebShooter leftShooter;
@@ -72,11 +83,14 @@ namespace SpiderMan
 
             bool slingshotArmed = swingPhysics != null && swingPhysics.IsSlingshotArmed;
 
+            CheckSwingPullBoost();            // continuous per-frame boost while swinging
+
             if (slingshotArmed)
                 CheckSlingshotGesture();      // both webs close — pull back both to slingshot
             else
             {
                 CheckSingleWebLaunch();       // one web — pull back that controller to swing-launch
+                CheckAerialGesture();         // no web + airborne — pull back both to boost forward
                 ReadPrimaryButton();          // button: push away from anchor, or jump if no web
             }
         }
@@ -114,6 +128,38 @@ namespace SpiderMan
                 _rightVel     = (pos - _prevRightPos) / dt;
                 _prevRightPos = pos;
             }
+        }
+
+        // ── Swing pull boost (continuous gesture) ────────────────────────────
+        // While at least one hand has an active swing web, detect the backward-hand
+        // pulling gesture (controller moving opposite to camera-forward, after removing
+        // the body's current velocity). Add a proportional continuous forward force.
+        // This simulates pulling on the web rope mid-arc to pump the swing.
+        void CheckSwingPullBoost()
+        {
+            if (swingPhysics == null || !swingPhysics.IsSwinging) return;
+
+            Camera cam = Camera.main;
+            if (cam == null) return;
+
+            Vector3 bodyVel = swingPhysics.Velocity;
+            Vector3 camBack = -cam.transform.forward; // "backward" in world space
+
+            bool lSwing = leftShooter  != null && leftShooter.IsWebActive;
+            bool rSwing = rightShooter != null && rightShooter.IsWebActive;
+
+            float leftBack  = lSwing ? Vector3.Dot(_leftVel  - bodyVel, camBack) : 0f;
+            float rightBack = rSwing ? Vector3.Dot(_rightVel - bodyVel, camBack) : 0f;
+
+            float maxPull = Mathf.Max(leftBack, rightBack);
+            if (maxPull < swingPullThreshold) return;
+
+            Vector3 fwd = new Vector3(cam.transform.forward.x, 0f, cam.transform.forward.z);
+            if (fwd.sqrMagnitude < 0.01f) return;
+            fwd.Normalize();
+
+            float force = Mathf.Clamp(maxPull * swingPullBoostScale, 0f, maxSwingPullForce);
+            swingPhysics.AddContinuousForce(fwd * force);
         }
 
         // ── Single-web push (button) ─────────────────────────────────────────
@@ -164,12 +210,48 @@ namespace SpiderMan
 
             if (Time.time - _lastPush < cooldown) return;
 
+            // Subtract the body's current velocity so that only the player's PHYSICAL
+            // hand movement counts. Without this, falling makes the controllers appear
+            // to move "away from anchor" even when the hands are perfectly still.
+            Vector3 bodyVel = swingPhysics != null ? swingPhysics.Velocity : Vector3.zero;
+
             float pull = l
-                ? PullBackSpeed(leftShooter.transform,  leftShooter.AnchorPoint,  _leftVel)
-                : PullBackSpeed(rightShooter.transform, rightShooter.AnchorPoint, _rightVel);
+                ? PullBackSpeed(leftShooter.transform,  leftShooter.AnchorPoint,  _leftVel  - bodyVel)
+                : PullBackSpeed(rightShooter.transform, rightShooter.AnchorPoint, _rightVel - bodyVel);
 
             if (pull >= pullBackThreshold)
-                ExecuteSlingshot();
+                ExecuteSlingshot(pull);
+        }
+
+        // ── Aerial gesture (no web, airborne) ────────────────────────────────
+        // When falling freely with no web, pulling both controllers backward (in camera
+        // space) applies a forward boost so the player can redirect their fall.
+        void CheckAerialGesture()
+        {
+            bool l = leftShooter  != null && leftShooter.IsWebActive;
+            bool r = rightShooter != null && rightShooter.IsWebActive;
+            if (l || r) return;                                         // web active → other paths handle it
+            if (swingPhysics == null || swingPhysics.IsGrounded) return;
+            if (Time.time - _lastPush < cooldown) return;
+
+            Camera cam = Camera.main;
+            if (cam == null) return;
+
+            // "Pulling back" = controllers moving opposite to camera forward
+            Vector3 bodyVel = swingPhysics.Velocity;
+            Vector3 camBack = -cam.transform.forward;
+
+            float leftBack  = Vector3.Dot(_leftVel  - bodyVel, camBack);
+            float rightBack = Vector3.Dot(_rightVel - bodyVel, camBack);
+
+            if (leftBack < pullBackThreshold || rightBack < pullBackThreshold) return;
+
+            Vector3 fwd = new(cam.transform.forward.x, 0f, cam.transform.forward.z);
+            if (fwd.sqrMagnitude < 0.01f) return;
+
+            // Slightly weaker than a full slingshot — gives directional control, not a massive launch
+            swingPhysics.AddImpulse(fwd.normalized * (slingshotForce * 0.55f));
+            _lastPush = Time.time;
         }
 
         // ── Dual-web slingshot (gesture) ─────────────────────────────────────
@@ -177,12 +259,14 @@ namespace SpiderMan
         {
             if (Time.time - _lastPush < cooldown) return;
 
-            // Each controller must be moving away from its own anchor above the threshold.
-            float leftPull  = PullBackSpeed(leftShooter.transform,  leftShooter.AnchorPoint,  _leftVel);
-            float rightPull = PullBackSpeed(rightShooter.transform, rightShooter.AnchorPoint, _rightVel);
+            // Subtract body velocity so falling with webs active doesn't falsely trigger.
+            Vector3 bodyVel = swingPhysics != null ? swingPhysics.Velocity : Vector3.zero;
+
+            float leftPull  = PullBackSpeed(leftShooter.transform,  leftShooter.AnchorPoint,  _leftVel  - bodyVel);
+            float rightPull = PullBackSpeed(rightShooter.transform, rightShooter.AnchorPoint, _rightVel - bodyVel);
 
             if (leftPull >= pullBackThreshold && rightPull >= pullBackThreshold)
-                ExecuteSlingshot();
+                ExecuteSlingshot((leftPull + rightPull) * 0.5f);
         }
 
         // Returns the speed at which the controller is moving AWAY from its anchor point.
@@ -194,7 +278,10 @@ namespace SpiderMan
             return Vector3.Dot(vel, awayDir.normalized);
         }
 
-        void ExecuteSlingshot()
+        // avgPull: average backward hand speed that triggered this launch (m/s).
+        // Force scales up from 60% at threshold to 100% at 3× threshold, so harder
+        // pulls reward the player with more launch speed.
+        void ExecuteSlingshot(float avgPull = 0f)
         {
             // Determine if both webs are on the same moveable Rigidbody.
             // Primary check: same Rigidbody component reference.
@@ -219,6 +306,12 @@ namespace SpiderMan
             }
             else
             {
+                // Scale launch by how hard the player pulled — 60% at minimum threshold,
+                // ramping to 100% at 3× the threshold.
+                float forceScale = avgPull > 0f
+                    ? Mathf.Clamp(0.6f + 0.4f * (avgPull - pullBackThreshold) / (pullBackThreshold * 2f), 0.6f, 1f)
+                    : 1f;
+
                 Camera cam = Camera.main;
                 Vector3 fwd = cam != null ? cam.transform.forward : transform.forward;
                 fwd = new Vector3(fwd.x, 0f, fwd.z);
@@ -226,7 +319,8 @@ namespace SpiderMan
                     fwd = new Vector3(transform.forward.x, 0f, transform.forward.z);
                 fwd.Normalize();
 
-                Vector3 impulse = fwd * slingshotForce + Vector3.up * slingshotUpward;
+                Vector3 impulse = fwd * (slingshotForce * forceScale)
+                                + Vector3.up * (slingshotUpward * forceScale);
                 if (swingPhysics != null) swingPhysics.AddImpulse(impulse);
             }
 

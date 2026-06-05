@@ -26,6 +26,13 @@ namespace SpiderMan
         [Tooltip("Layers that count as climbable. Exclude layers used by moveable props.")]
         [SerializeField] LayerMask climbLayers = ~0;
 
+        [Header("Wall Jump  (fast outward release while climbing)")]
+        [Tooltip("Minimum outward hand speed (m/s) on grip release to trigger a wall jump.")]
+        [SerializeField] float wallJumpMinSpeed = 1.2f;
+
+        [Tooltip("Velocity multiplier applied to the release hand velocity to produce the jump impulse.")]
+        [SerializeField] float wallJumpScale = 1.2f;
+
         [Header("References")]
         [Tooltip("Transform of the Left Controller (WebShooter parent).")]
         [SerializeField] Transform leftController;
@@ -47,6 +54,15 @@ namespace SpiderMan
             return d;
         }
 
+        /// Returns and clears any pending wall-jump impulse produced by releasing the grip fast.
+        /// SwingPhysics calls this each LateUpdate and feeds the result to AddImpulse().
+        public Vector3 ConsumePendingJump()
+        {
+            Vector3 j    = _pendingJump;
+            _pendingJump = Vector3.zero;
+            return j;
+        }
+
         // ── Private ──────────────────────────────────────────────────────────
         InputDevice _lDev, _rDev;
         bool        _lPrev, _rPrev;
@@ -55,13 +71,40 @@ namespace SpiderMan
         Vector3 _lGrabPt, _rGrabPt;
 
         Vector3 _delta;
+        Vector3 _pendingJump;
+
+        // Hand velocities (world-space, measured by differencing controller positions each frame)
+        Vector3 _prevLPos, _prevRPos;
+        Vector3 _lHandVel, _rHandVel;
 
         // ── Unity lifecycle ──────────────────────────────────────────────────
+        void Awake()
+        {
+            if (leftController  != null) _prevLPos = leftController.position;
+            if (rightController != null) _prevRPos = rightController.position;
+        }
+
         void Update()
         {
             PollDevices();
+            TrackHandVelocities();
             ReadGrips();
             ComputeDelta();
+        }
+
+        void TrackHandVelocities()
+        {
+            float dt = Mathf.Max(Time.deltaTime, 0.0001f);
+            if (leftController  != null)
+            {
+                _lHandVel = (leftController.position  - _prevLPos) / dt;
+                _prevLPos = leftController.position;
+            }
+            if (rightController != null)
+            {
+                _rHandVel = (rightController.position - _prevRPos) / dt;
+                _prevRPos = rightController.position;
+            }
         }
 
         // ── Devices ──────────────────────────────────────────────────────────
@@ -92,12 +135,30 @@ namespace SpiderMan
             if ( lHeld && !_lPrev) TryGrab(leftController,  ref _lGrabPt, ref _lGrab);
             if ( rHeld && !_rPrev) TryGrab(rightController, ref _rGrabPt, ref _rGrab);
 
-            // Release on grip release
+            // Release on grip release — check for wall-jump gesture BEFORE clearing grab
+            if (!lHeld && _lPrev && _lGrab) OnGripRelease(_lHandVel, _lGrabPt);
+            if (!rHeld && _rPrev && _rGrab) OnGripRelease(_rHandVel, _rGrabPt);
             if (!lHeld) _lGrab = false;
             if (!rHeld) _rGrab = false;
 
             _lPrev = lHeld;
             _rPrev = rHeld;
+        }
+
+        // When grip is released while climbing, check if the hand was moving quickly
+        // away from the grab point (pushing off the wall). If so, accumulate a jump impulse.
+        void OnGripRelease(Vector3 handVel, Vector3 grabPt)
+        {
+            Vector3 outDir = transform.position - grabPt;
+            if (outDir.sqrMagnitude < 0.001f) return;
+            outDir.Normalize();
+
+            // Only the outward component of hand velocity counts
+            float outSpeed = Vector3.Dot(handVel, outDir);
+            if (outSpeed < wallJumpMinSpeed) return;
+
+            // Accumulate across both hands so a two-hand push-off combines
+            _pendingJump += outDir * (outSpeed * wallJumpScale);
         }
 
         void TryGrab(Transform ctrl, ref Vector3 grabPt, ref bool success)

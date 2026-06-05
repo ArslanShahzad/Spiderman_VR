@@ -94,19 +94,29 @@ namespace SpiderMan.Editor
 
             // ── 8. Configure SwingPhysics ────────────────────────────────────
             var soSwing = new SerializedObject(swing);
-            soSwing.FindProperty("gravity").floatValue          = 12f;
-            soSwing.FindProperty("maxSpeed").floatValue         = 22f;
-            soSwing.FindProperty("airDrag").floatValue          = 0.008f;
-            soSwing.FindProperty("swingMinHeight").floatValue   = 1.5f;
-            soSwing.FindProperty("swingMinDist").floatValue     = 3f;
-            soSwing.FindProperty("releaseUpBoost").floatValue   = 4f;
-            soSwing.FindProperty("groundJumpForce").floatValue  = 18f;
+            soSwing.FindProperty("gravity").floatValue             = 12f;
+            soSwing.FindProperty("maxSpeed").floatValue            = 22f;
+            soSwing.FindProperty("airDrag").floatValue             = 0.008f;
+            soSwing.FindProperty("webRopeSpring").floatValue       = 250f;
+            soSwing.FindProperty("webRopeDamper").floatValue       = 18f;
+            soSwing.FindProperty("swingMinHeight").floatValue      = 1.5f;
+            soSwing.FindProperty("swingMinDist").floatValue        = 3f;
+            soSwing.FindProperty("swingKickSpeed").floatValue      = 6f;
+            soSwing.FindProperty("releaseUpBoost").floatValue      = 2f;
+            soSwing.FindProperty("diveAngleThreshold").floatValue  = 35f;
+            soSwing.FindProperty("diveGravityScale").floatValue    = 2.0f;
+            soSwing.FindProperty("retractionSpeed").floatValue     = 5f;
+            soSwing.FindProperty("minRopeLength").floatValue       = 1.5f;
+            soSwing.FindProperty("retractionThreshold").floatValue = 0.7f;
+            soSwing.FindProperty("groundJumpForce").floatValue     = 18f;
             soSwing.FindProperty("groundJumpMaxHeight").floatValue = 1.5f;
             soSwing.FindProperty("groundJumpMaxDist").floatValue   = 6f;
-            soSwing.FindProperty("grappleSpeed").floatValue     = 14f;
-            soSwing.FindProperty("dualPullSpeed").floatValue    = 16f;
-            soSwing.FindProperty("dualGrabDistance").floatValue = 1.2f;
-            soSwing.FindProperty("groundRadius").floatValue     = 0.15f;
+            soSwing.FindProperty("grappleSpeed").floatValue        = 14f;
+            soSwing.FindProperty("dualPullSpeed").floatValue       = 16f;
+            soSwing.FindProperty("dualGrabDistance").floatValue    = 1.2f;
+            soSwing.FindProperty("groundRadius").floatValue        = 0.15f;
+            soSwing.FindProperty("groundAssistHeight").floatValue   = 1.2f;
+            soSwing.FindProperty("groundAssistForce").floatValue    = 20f;
             soSwing.FindProperty("leftShooter").objectReferenceValue  = leftShooter;
             soSwing.FindProperty("rightShooter").objectReferenceValue = rightShooter;
             soSwing.FindProperty("wallClimber").objectReferenceValue  = climber;
@@ -127,13 +137,15 @@ namespace SpiderMan.Editor
 
             // ── 9. Configure SelfPropulsion ──────────────────────────────────
             var soProp = new SerializedObject(propulsion);
-            soProp.FindProperty("pushForce").floatValue        = 10f;
-            soProp.FindProperty("cooldown").floatValue         = 0.6f;
-            soProp.FindProperty("upwardBias").floatValue       = 0.25f;
-            soProp.FindProperty("maxAnchorSpread").floatValue  = 5f;
+            soProp.FindProperty("pushForce").floatValue         = 10f;
+            soProp.FindProperty("cooldown").floatValue          = 0.6f;
+            soProp.FindProperty("upwardBias").floatValue        = 0.25f;
             soProp.FindProperty("pullBackThreshold").floatValue = 1.5f;
-            soProp.FindProperty("slingshotForce").floatValue   = 16f;
-            soProp.FindProperty("slingshotUpward").floatValue  = 6f;
+            soProp.FindProperty("slingshotForce").floatValue      = 16f;
+            soProp.FindProperty("slingshotUpward").floatValue     = 6f;
+            soProp.FindProperty("swingPullThreshold").floatValue  = 0.5f;
+            soProp.FindProperty("swingPullBoostScale").floatValue = 4f;
+            soProp.FindProperty("maxSwingPullForce").floatValue   = 8f;
             soProp.FindProperty("leftShooter").objectReferenceValue   = leftShooter;
             soProp.FindProperty("rightShooter").objectReferenceValue  = rightShooter;
             soProp.FindProperty("swingPhysics").objectReferenceValue  = swing;
