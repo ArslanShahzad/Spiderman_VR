@@ -143,7 +143,7 @@ namespace SpiderMan
             if (cam == null) return;
 
             Vector3 bodyVel = swingPhysics.Velocity;
-            Vector3 camBack = -cam.transform.forward; // "backward" in world space
+            Vector3 camBack = -cam.transform.forward;
 
             bool lSwing = leftShooter  != null && leftShooter.IsWebActive;
             bool rSwing = rightShooter != null && rightShooter.IsWebActive;
@@ -154,12 +154,18 @@ namespace SpiderMan
             float maxPull = Mathf.Max(leftBack, rightBack);
             if (maxPull < swingPullThreshold) return;
 
-            Vector3 fwd = new Vector3(cam.transform.forward.x, 0f, cam.transform.forward.z);
-            if (fwd.sqrMagnitude < 0.01f) return;
-            fwd.Normalize();
+            // Boost in the direction the player is ALREADY moving (tangential to the arc).
+            // This correctly pumps energy into the pendulum regardless of where the
+            // player is looking. When barely moving (near arc top), fall back to
+            // camera-forward so the player can still push through the stall point.
+            Vector3 boostDir = bodyVel;
+            if (boostDir.sqrMagnitude < 0.5f)
+                boostDir = new Vector3(cam.transform.forward.x, 0f, cam.transform.forward.z);
+            if (boostDir.sqrMagnitude < 0.01f) return;
+            boostDir.Normalize();
 
             float force = Mathf.Clamp(maxPull * swingPullBoostScale, 0f, maxSwingPullForce);
-            swingPhysics.AddContinuousForce(fwd * force);
+            swingPhysics.AddContinuousForce(boostDir * force);
         }
 
         // ── Single-web push (button) ─────────────────────────────────────────
@@ -200,10 +206,14 @@ namespace SpiderMan
         }
 
         // ── Single-web swing launch (gesture) ────────────────────────────────
-        // Exactly one web must be active. When that controller is pulled back
-        // (moving away from its anchor) past pullBackThreshold, launch forward+up.
+        // Handles ground scenario only: one web attached (pending), player pulls back
+        // controller → slingshot-style forward + upward launch into the swing.
+        // Airborne webs activate as an immediate pendulum; their pull-back gesture
+        // is handled by CheckSwingRetraction inside SwingPhysics instead.
         void CheckSingleWebLaunch()
         {
+            if (swingPhysics != null && swingPhysics.IsSwinging) return;
+
             bool l = leftShooter  != null && leftShooter.IsWebActive;
             bool r = rightShooter != null && rightShooter.IsWebActive;
             if (l == r) return; // need exactly one web (both or neither → not this path)

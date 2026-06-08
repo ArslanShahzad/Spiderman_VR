@@ -94,33 +94,18 @@ namespace SpiderMan.Editor
 
             // ── 8. Configure SwingPhysics ────────────────────────────────────
             var soSwing = new SerializedObject(swing);
-            soSwing.FindProperty("gravity").floatValue             = 12f;
-            soSwing.FindProperty("maxSpeed").floatValue            = 22f;
-            soSwing.FindProperty("airDrag").floatValue             = 0.008f;
-            soSwing.FindProperty("webRopeSpring").floatValue       = 250f;
-            soSwing.FindProperty("webRopeDamper").floatValue       = 18f;
-            soSwing.FindProperty("swingMinHeight").floatValue      = 1.5f;
-            soSwing.FindProperty("swingMinDist").floatValue        = 3f;
-            soSwing.FindProperty("swingKickSpeed").floatValue      = 6f;
-            soSwing.FindProperty("releaseUpBoost").floatValue      = 2f;
-            soSwing.FindProperty("diveAngleThreshold").floatValue  = 35f;
-            soSwing.FindProperty("diveGravityScale").floatValue    = 2.0f;
-            soSwing.FindProperty("retractionSpeed").floatValue     = 5f;
-            soSwing.FindProperty("minRopeLength").floatValue       = 1.5f;
-            soSwing.FindProperty("retractionThreshold").floatValue = 0.7f;
-            soSwing.FindProperty("groundJumpForce").floatValue     = 18f;
-            soSwing.FindProperty("groundJumpMaxHeight").floatValue = 1.5f;
-            soSwing.FindProperty("groundJumpMaxDist").floatValue   = 6f;
-            soSwing.FindProperty("grappleSpeed").floatValue        = 14f;
-            soSwing.FindProperty("dualPullSpeed").floatValue       = 16f;
-            soSwing.FindProperty("dualGrabDistance").floatValue    = 1.2f;
-            soSwing.FindProperty("groundRadius").floatValue        = 0.15f;
-            soSwing.FindProperty("groundAssistHeight").floatValue   = 1.2f;
-            soSwing.FindProperty("groundAssistForce").floatValue    = 20f;
+            soSwing.FindProperty("gravity").floatValue        = 12f;
+            soSwing.FindProperty("maxSpeed").floatValue       = 22f;
+            soSwing.FindProperty("webSpring").floatValue      = 500f;
+            soSwing.FindProperty("webDamper").floatValue      = 15f;
+            soSwing.FindProperty("maxWebDistance").floatValue = 30f;
+            soSwing.FindProperty("swingMinHeight").floatValue = 1.5f;
+            soSwing.FindProperty("swingMinDist").floatValue   = 3f;
+            soSwing.FindProperty("releaseUpBoost").floatValue = 2f;
+            soSwing.FindProperty("groundRadius").floatValue   = 0.15f;
             soSwing.FindProperty("leftShooter").objectReferenceValue  = leftShooter;
             soSwing.FindProperty("rightShooter").objectReferenceValue = rightShooter;
             soSwing.FindProperty("wallClimber").objectReferenceValue  = climber;
-            soSwing.FindProperty("webTether").objectReferenceValue    = tether;
             soSwing.ApplyModifiedProperties();
 
             // ── 9b. Configure WallClimber ────────────────────────────────────
