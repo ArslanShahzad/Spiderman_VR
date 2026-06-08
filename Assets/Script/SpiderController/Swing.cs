@@ -1,4 +1,4 @@
-using UnityEngine;
+ using UnityEngine;
 using UnityEngine.InputSystem;
 
 public class Swing : MonoBehaviour
@@ -13,7 +13,9 @@ public class Swing : MonoBehaviour
     public Vector3 swingPoint;
 
     public Rigidbody playerRigidbody;
-    private SpringJoint springJoint;    
+    private SpringJoint springJoint;   
+
+    public LineRenderer lineRenderer; 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
@@ -25,7 +27,8 @@ public class Swing : MonoBehaviour
     {
         GetSwingPoint();
 
-        if(SwingAction.action.WasPressedThisFrame() && HasHit)
+        DrawRope();
+        if(SwingAction.action.WasPressedThisFrame())
         {
             Debug.Log("Swinging to: " + swingPoint);
             StartSwing();
@@ -37,6 +40,18 @@ public class Swing : MonoBehaviour
             StopSwing();
             // Implement logic to stop swinging, such as resetting forces or allowing the player to fall.
         }
+    }
+
+    void PullUp()
+    {
+        if(ContinuousMovementPhysics.Instance._isGrounded)
+            return;
+
+        if(Vector3.Distance(playerRigidbody.position, swingPoint) < 15f)
+            return;
+        Vector3 directionToSwingPoint = (swingPoint - playerRigidbody.position).normalized;
+        float pullStrength = 10f; // Adjust this value to control how quickly the player is pulled towards the swing point.
+        playerRigidbody.AddForce(directionToSwingPoint * pullStrength, ForceMode.Acceleration);
     }
 
     void StartSwing()
@@ -67,6 +82,8 @@ void StopSwing()
     }   
     void GetSwingPoint()
     {
+        if(springJoint != null)
+            return;
         RaycastHit hit;
        HasHit= Physics.Raycast(WebOrigin.position, WebOrigin.forward, out hit, maxDistance, physicsLayer);
         if (HasHit)        {
@@ -77,6 +94,22 @@ void StopSwing()
         }
         else    {
             PredictionPoint.gameObject.SetActive(false);
+        }
+    }
+
+    void DrawRope()
+    {
+        if (springJoint != null)
+        {
+            lineRenderer.positionCount = 2;
+            lineRenderer.SetPosition(0, WebOrigin.position);
+            lineRenderer.SetPosition(1, swingPoint);
+            lineRenderer.enabled = true;
+            PullUp();
+        }
+        else
+        {
+            lineRenderer.enabled = false;
         }
     }
 }
