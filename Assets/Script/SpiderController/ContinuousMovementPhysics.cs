@@ -36,7 +36,7 @@ public class ContinuousMovementPhysics : MonoBehaviour
     void Update()
     {
         _moveInput = moveInputSource.action.ReadValue<Vector2>();
-        _turnInput = turnInputSource.action.ReadValue<Vector3>();
+        _turnInput = turnInputSource.action.ReadValue<Vector2>();
   
         if (jumpInputSource.action.WasPressedThisFrame())
             _jumpPending = true;
@@ -56,22 +56,21 @@ public class ContinuousMovementPhysics : MonoBehaviour
 
     void FixedUpdate()
     {
-          _isGrounded = CheckifGrounded();
-          if (onlyMoveIfGrounded && !_isGrounded)
-              return;
-       Quaternion rotation = Quaternion.Euler(0,directionSource.rotation.eulerAngles.y,0);
-       Vector3 Direction = rotation * new Vector3(_moveInput.x, 0, _moveInput.y);
-       Vector3 TargetPosition = rb.position + Direction * speed * Time.fixedDeltaTime;
+        _isGrounded = CheckifGrounded();
 
-        Vector3 axis = Vector3.up;
+        // Rotation always applies regardless of grounded state
         float turnAmount = _turnInput.x * turnSpeed * Time.fixedDeltaTime;
-        Quaternion turnRotation = Quaternion.AngleAxis(turnAmount, axis);   
+        Quaternion turnRotation = Quaternion.AngleAxis(turnAmount, Vector3.up);
         rb.MoveRotation(rb.rotation * turnRotation);
-        Vector3 newPosition = turnRotation * (TargetPosition - turnSource.position) + turnSource.position;
-        rb.MovePosition(newPosition); 
-     
-         
 
+        if (onlyMoveIfGrounded && !_isGrounded)
+            return;
+
+        Quaternion rotation = Quaternion.Euler(0, directionSource.rotation.eulerAngles.y, 0);
+        Vector3 Direction = rotation * new Vector3(_moveInput.x, 0, _moveInput.y);
+        Vector3 TargetPosition = speed * Time.fixedDeltaTime * Direction + rb.position;
+        Vector3 newPosition = turnRotation * (TargetPosition - turnSource.position) + turnSource.position;
+        rb.MovePosition(newPosition);
     }
     bool CheckifGrounded()
     {
