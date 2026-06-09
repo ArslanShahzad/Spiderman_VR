@@ -31,6 +31,12 @@ public class ContinuousMovementPhysics : MonoBehaviour
     Vector2 _moveInput;
     Vector2 _turnInput;
 
+    [Header("Climb Scenario")]
+    [Space(10)]
+    public bool IsClimbing = false;
+    public Swing LeftSwing;
+    public Swing RightSwing;
+
     // ────────────────────────────────────────────────────────────────────────
 
     void Update()
@@ -38,9 +44,9 @@ public class ContinuousMovementPhysics : MonoBehaviour
         _moveInput = moveInputSource.action.ReadValue<Vector2>();
         _turnInput = turnInputSource.action.ReadValue<Vector2>();
   
+         CheckClimb();
         if (jumpInputSource.action.WasPressedThisFrame())
             _jumpPending = true;
-
 
     }
 
@@ -81,5 +87,19 @@ public class ContinuousMovementPhysics : MonoBehaviour
         bool HasHit = Physics.SphereCast(StartPoint, bodyCollider.radius, Vector3.down, out RaycastHit hitInfo, rayLength, groundLayer);
         return HasHit;
     
+    }
+
+    void CheckClimb()
+    {
+        if(LeftSwing._isStuckToWall || RightSwing._isStuckToWall)
+        {
+            rb.linearVelocity = Vector3.zero;
+            rb.useGravity = false;
+            IsClimbing = true;
+        }
+        else
+        {
+            IsClimbing = false;
+        }
     }
 }
