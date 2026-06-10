@@ -1246,6 +1246,7 @@ MonoBehaviour:
       m_Flags: 0
     m_Reference: {fileID: -3326005586356538449, guid: c348712bda248c246b8c49b3db54643f, type: 3}
   leftControllerPoseDriver: {fileID: 4602308929937073759}
+  _isStuckToWall: 0
 --- !u!135 &396020500
 SphereCollider:
   m_ObjectHideFlags: 0
@@ -4295,6 +4296,7 @@ MonoBehaviour:
       m_Flags: 0
     m_Reference: {fileID: -2024308242397127297, guid: c348712bda248c246b8c49b3db54643f, type: 3}
   leftControllerPoseDriver: {fileID: 6693052529338930997}
+  _isStuckToWall: 0
 --- !u!135 &1563517277
 SphereCollider:
   m_ObjectHideFlags: 0
@@ -5559,6 +5561,9 @@ MonoBehaviour:
   turnSource: {fileID: 1072935884}
   bodyCollider: {fileID: 644497032}
   _isGrounded: 0
+  IsClimbing: 0
+  LeftSwing: {fileID: 1563517276}
+  RightSwing: {fileID: 396020499}
 --- !u!1 &1954087686
 GameObject:
   m_ObjectHideFlags: 0
