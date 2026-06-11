@@ -4799,20 +4799,24 @@ PrefabInstance:
       value: Survivalist (1)
       objectReference: {fileID: 0}
     - target: {fileID: 6766536238432138804, guid: 29275473dc42c1a499187925872e54cb, type: 3}
+      propertyPath: m_Avatar
+      value: 
+      objectReference: {fileID: 9000000, guid: 5f66591eee6db7744a0dfff0b395fc09, type: 3}
+    - target: {fileID: 6766536238432138804, guid: 29275473dc42c1a499187925872e54cb, type: 3}
       propertyPath: m_Controller
       value: 
       objectReference: {fileID: 9100000, guid: c16bf4af16c0a734fa36fe674e1295d5, type: 2}
     - target: {fileID: 6766536238432138805, guid: 29275473dc42c1a499187925872e54cb, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 33.72318
+      value: 7.2392154
       objectReference: {fileID: 0}
     - target: {fileID: 6766536238432138805, guid: 29275473dc42c1a499187925872e54cb, type: 3}
       propertyPath: m_LocalPosition.y
-      value: -0.0000019073486
+      value: 38.932842
       objectReference: {fileID: 0}
     - target: {fileID: 6766536238432138805, guid: 29275473dc42c1a499187925872e54cb, type: 3}
       propertyPath: m_LocalPosition.z
-      value: -7.600192
+      value: 37.815044
       objectReference: {fileID: 0}
     - target: {fileID: 6766536238432138805, guid: 29275473dc42c1a499187925872e54cb, type: 3}
       propertyPath: m_LocalRotation.w
@@ -4975,7 +4979,7 @@ MonoBehaviour:
   target: {fileID: 0}
   eyeTransform: {fileID: 1852964708}
   muzzlePoint: {fileID: 344278444}
-  combatType: 1
+  combatType: 0
   weaponType: 0
   gun:
     gunRoot: {fileID: 0}
