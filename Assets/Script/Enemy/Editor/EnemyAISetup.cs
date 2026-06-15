@@ -2,7 +2,7 @@
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.AI;
-using UnityEngine.Animations.Rigging;
+using RootMotion.FinalIK;
 
 /// <summary>
 /// One-click Enemy AI setup tool.
@@ -63,41 +63,38 @@ public static class EnemyAISetup
         audio.maxDistance  = 20f;
         audio.rolloffMode  = AudioRolloffMode.Linear;
 
-        // ── 3. Animation Rigging (Shooting only) ──────────────────────────────
+        // ── 3. Final IK — AimIK (Shooting only) ──────────────────────────────
+        AimIK aimIK = null;
         bool spineFound = false;
-        Rig rig = null;
-        Transform aimTargetTransform = null;
 
         if (combatType == EnemyAI.CombatType.Shooting)
         {
-            RigBuilder rigBuilder = EnsureComponent<RigBuilder>(root);
+            aimIK = EnsureComponent<AimIK>(root);
 
-            GameObject rigLayerGO = FindOrCreateChild(root, "AimRigLayer");
-            rig = EnsureComponent<Rig>(rigLayerGO);
-            RegisterRigLayer(rigBuilder, rig);
+            // Try to auto-add spine bones to the solver chain
+            // (solver.transform is wired to MuzzlePoint after it is created, in step 9)
+            Transform spine02 = FindBoneRecursive(root.transform, "spine_02")
+                             ?? FindBoneRecursive(root.transform, "spine_01")
+                             ?? FindBoneRecursive(root.transform, "Spine");
+            Transform spine01 = FindBoneRecursive(root.transform, "spine_01")
+                             ?? FindBoneRecursive(root.transform, "Spine");
 
-            Transform spineBone = FindBoneRecursive(root.transform, "spine_02")
-                               ?? FindBoneRecursive(root.transform, "spine_01")
-                               ?? FindBoneRecursive(root.transform, "Spine");
-
-            // World-space aim target
-            string aimName     = root.name + "_AimTarget";
-            GameObject aimGO   = GameObject.Find(aimName) ?? new GameObject(aimName);
-            Undo.RegisterCreatedObjectUndo(aimGO, "Create AimTarget");
-            aimGO.transform.position = root.transform.position + root.transform.forward * 5f + Vector3.up * 1.5f;
-            aimTargetTransform = aimGO.transform;
-
-            if (spineBone != null)
+            if (spine02 != null)
             {
                 spineFound = true;
-                GameObject aimConsGO = FindOrCreateChild(rigLayerGO, "UpperBodyAim");
-                MultiAimConstraint mac = EnsureComponent<MultiAimConstraint>(aimConsGO);
-                ConfigureMultiAimConstraint(mac, spineBone, aimTargetTransform);
+                // Build a two-bone chain: spine_01 → spine_02 (or single if same)
+                IKSolver.Bone[] bones = spine01 != null && spine01 != spine02
+                    ? new IKSolver.Bone[] { new IKSolver.Bone(spine01), new IKSolver.Bone(spine02) }
+                    : new IKSolver.Bone[] { new IKSolver.Bone(spine02) };
+                aimIK.solver.bones = bones;
             }
             else
             {
-                Debug.LogWarning("[EnemyAISetup] spine_02 bone not found — add MultiAimConstraint manually.");
+                Debug.LogWarning("[EnemyAISetup] spine_02/spine_01 not found — assign AimIK bones manually in the Inspector.");
             }
+
+            // Start fully blended out; EnemyAI blends in when entering Combat
+            aimIK.solver.IKPositionWeight = 0f;
         }
 
         // ── 4. Eye point (head bone) ──────────────────────────────────────────
@@ -168,12 +165,24 @@ public static class EnemyAISetup
         ai.bulletHitMask       = LayerMask.GetMask("Default");
         ai.gun.gunRoot         = gunRootGO;
 
+        // Auto-assign spine bone for look-at system
+        if (ai.spineBone == null)
+        {
+            Transform spine = FindBoneRecursive(root.transform, "spine_02");
+            if (spine == null) spine = FindBoneRecursive(root.transform, "spine_01");
+            if (spine == null) spine = FindBoneRecursive(root.transform, "Spine");
+            if (spine != null) ai.spineBone = spine;
+        }
+
         if (combatType == EnemyAI.CombatType.Shooting)
         {
             ai.muzzlePoint         = muzzleGO != null ? muzzleGO.transform : null;
             ai.bulletTrailRenderer = lr;
-            ai.aimRig              = rig;
-            ai.aimTarget           = aimTargetTransform;
+            ai.aimIK               = aimIK;
+
+            // Wire AimIK solver.transform to MuzzlePoint now that muzzleGO exists
+            if (aimIK != null && muzzleGO != null)
+                aimIK.solver.transform = muzzleGO.transform;
         }
         else
         {
@@ -198,9 +207,9 @@ public static class EnemyAISetup
             "  ✅ CapsuleCollider + NavMeshAgent\n" +
             "  ✅ AudioSource (3D, linear rolloff)\n" +
             (combatType == EnemyAI.CombatType.Shooting
-                ? $"  ✅ RigBuilder + AimRigLayer\n" +
-                  (spineFound ? "  ✅ MultiAimConstraint → spine_02\n"
-                              : "  ⚠️  MultiAimConstraint — spine_02 not found, set manually\n") +
+                ? "  ✅ AimIK component added\n" +
+                  (spineFound ? "  ✅ AimIK bones → spine chain auto-wired\n"
+                              : "  ⚠️  AimIK bones — spine not found, assign manually in AimIK Inspector\n") +
                   "  ✅ GunRoot (hand_r) + MuzzlePoint + BulletTrail\n"
                 : "  ✅ GunRoot hidden (Melee)\n") +
             "  ✅ EyePoint → head bone\n" +
@@ -217,54 +226,14 @@ public static class EnemyAISetup
                 ? "  5. Add your gun mesh as a child of GunRoot (already positioned at hand_r)\n" +
                   "  6. Tune gun.positionOffset / gun.rotationOffset in EnemyAI Inspector\n"
                 : "  5. For ragdoll: add Rigidbody + Collider to each bone under pelvis\n") +
-            "  6. Press 'Update Animation Rigging' button in the RigBuilder component";
+            (combatType == EnemyAI.CombatType.Shooting
+                ? "  6. In AimIK Inspector: verify Transform = MuzzlePoint, Bones = spine chain\n" +
+                  "  7. Run play mode — AimIK weight blends in automatically in Combat state"
+                : "  6. For ragdoll: add Rigidbody + Collider to each bone under pelvis");
 
         Debug.Log(log);
         EditorUtility.DisplayDialog("Enemy AI Setup",
             $"Setup complete as {type} enemy!\nSee Console for the full checklist.", "Done");
-    }
-
-    // ─── Animation Rigging Helpers ────────────────────────────────────────────
-
-    private static void RegisterRigLayer(RigBuilder rigBuilder, Rig rig)
-    {
-        using var rbSO = new SerializedObject(rigBuilder);
-        SerializedProperty layers = rbSO.FindProperty("m_RigLayers");
-        for (int i = 0; i < layers.arraySize; i++)
-            if (layers.GetArrayElementAtIndex(i).FindPropertyRelative("m_Rig").objectReferenceValue == rig)
-                return;
-
-        layers.arraySize++;
-        SerializedProperty last = layers.GetArrayElementAtIndex(layers.arraySize - 1);
-        last.FindPropertyRelative("m_Rig").objectReferenceValue = rig;
-        last.FindPropertyRelative("m_Active").boolValue         = true;
-        rbSO.ApplyModifiedProperties();
-    }
-
-    private static void ConfigureMultiAimConstraint(MultiAimConstraint mac,
-                                                     Transform constrained,
-                                                     Transform aimTarget)
-    {
-        using var so = new SerializedObject(mac);
-
-        SetPropSafe(so, "m_Data.m_ConstrainedObject", constrained);
-
-        SerializedProperty arr = so.FindProperty("m_Data.m_SourceObjects.m_Array");
-        if (arr != null)
-        {
-            arr.arraySize = 1;
-            SerializedProperty elem = arr.GetArrayElementAtIndex(0);
-            SetPropSafe(elem, "transform", aimTarget);
-            SerializedProperty w = elem.FindPropertyRelative("weight");
-            if (w != null) w.floatValue = 1f;
-        }
-
-        // Constrain X (pitch) only — Y rotation is handled by NavMesh/FaceTarget
-        SetBoolSafe(so, "m_Data.m_Settings.m_ConstrainedXAxis", true);
-        SetBoolSafe(so, "m_Data.m_Settings.m_ConstrainedYAxis", false);
-        SetBoolSafe(so, "m_Data.m_Settings.m_ConstrainedZAxis", false);
-
-        so.ApplyModifiedProperties();
     }
 
     // ─── Generic Helpers ──────────────────────────────────────────────────────
@@ -318,23 +287,5 @@ public static class EnemyAISetup
         catch { return false; }
     }
 
-    private static void SetPropSafe(SerializedObject so, string path, Object val)
-    {
-        var p = so.FindProperty(path);
-        if (p != null) p.objectReferenceValue = val;
-        else Debug.LogWarning($"[EnemyAISetup] Property '{path}' not found — set manually in Inspector.");
-    }
-
-    private static void SetPropSafe(SerializedProperty parent, string rel, Object val)
-    {
-        var p = parent.FindPropertyRelative(rel);
-        if (p != null) p.objectReferenceValue = val;
-    }
-
-    private static void SetBoolSafe(SerializedObject so, string path, bool val)
-    {
-        var p = so.FindProperty(path);
-        if (p != null) p.boolValue = val;
-    }
 }
 #endif

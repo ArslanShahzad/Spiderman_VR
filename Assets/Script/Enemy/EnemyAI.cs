@@ -1,7 +1,7 @@
 using System.Collections;
 using UnityEngine;
 using UnityEngine.AI;
-using UnityEngine.Animations.Rigging;
+using RootMotion.FinalIK;
 
 #if UNITY_EDITOR
 using UnityEditor;
@@ -195,14 +195,27 @@ public class EnemyAI : MonoBehaviour
     public float trailStartWidth          = 0.015f;
     public float trailEndWidth            = 0.004f;
 
-    [Header("── Animation Rigging ──")]
-    [Tooltip("Rig component for the upper-body aim layer (Shooting only)")]
-    public Rig       aimRig;
-    [Tooltip("World-space transform that the MultiAimConstraint tracks")]
-    public Transform aimTarget;
-    public float     aimBlendSpeed   = 5f;
-    public float     aimActiveWeight = 1f;
-    public float     aimIdleWeight   = 0f;
+    [Header("── Final IK (AimIK) ──")]
+    [Tooltip("AimIK component for upper-body aiming (Shooting only). Configure Transform + Bones in the AimIK Inspector.")]
+    public AimIK aimIK;
+    public float aimBlendSpeed   = 5f;
+    public float aimActiveWeight = 1f;
+    public float aimIdleWeight   = 0f;
+
+    [Header("── Spine Look-At ──")]
+    [Tooltip("Spine bone to rotate toward the player when detected (e.g. spine_02)")]
+    public Transform spineBone;
+    [Tooltip("How fast the spine rotates toward / away from the player")]
+    public float spineLookSpeed = 5f;
+    [Tooltip("Overall blend (0 = no effect, 1 = full rotation)")]
+    [Range(0f, 1f)]
+    public float spineWeight    = 1f;
+    [Tooltip("X axis lower limit — how far the spine can tilt DOWN (negative = down)")]
+    public float spinePitchMin  = -30f;
+    [Tooltip("X axis upper limit — how far the spine can tilt UP")]
+    public float spinePitchMax  = 45f;
+    [Tooltip("Y axis ± limit — how far the spine can turn LEFT or RIGHT")]
+    public float spineYawLimit  = 60f;
 
     [Header("── Search ──")]
     public float searchWaitTime = 4f;
@@ -233,9 +246,12 @@ public class EnemyAI : MonoBehaviour
     private float   targetAimWeight;
 
     // Animation state tracking
-    private string currentAnimState = "";  // last state passed to PlayAnim/PlayAnimOneShot
-    private bool   isOneShotPlaying  = false; // true while a one-shot is still running
-    private bool   isAutoFiring      = false; // true while Automatic weapon is actively firing
+    private string currentAnimState = "";
+    private bool   isOneShotPlaying  = false;
+    private bool   isAutoFiring      = false;
+
+    // Spine look-at — smoothed additive offset applied in LateUpdate
+    private Quaternion spineOffset = Quaternion.identity;
 
     // ─── Init ─────────────────────────────────────────────────────────────────
 
@@ -309,6 +325,51 @@ public class EnemyAI : MonoBehaviour
         }
     }
 
+    // ─── Late Update — Spine Look-At ─────────────────────────────────────────
+
+    private void LateUpdate()
+    {
+        if (spineBone == null || currentState == EnemyState.Dead) return;
+
+        // Read the rotation the Animator just wrote for this frame
+        Quaternion animatedLocalRot = spineBone.localRotation;
+
+        Quaternion targetOffset;
+
+        if (targetVisible && target != null)
+        {
+            // Direction from spine to player chest (world space)
+            Vector3 dir   = (target.position + Vector3.up * 0.5f - spineBone.position).normalized;
+
+            // Express direction in the enemy root's local space so angles are
+            // always relative to the character's current facing, not world axes
+            Vector3 local = transform.InverseTransformDirection(dir);
+
+            // Pitch (X) — positive = tilt down, negative = tilt up
+            float pitch = Mathf.Atan2(-local.y,
+                              Mathf.Sqrt(local.x * local.x + local.z * local.z)) * Mathf.Rad2Deg;
+            // Yaw (Y) — positive = turn right, negative = turn left
+            float yaw   = Mathf.Atan2(local.x, local.z) * Mathf.Rad2Deg;
+
+            // Apply axis limits
+            pitch = Mathf.Clamp(pitch, spinePitchMin, spinePitchMax);
+            yaw   = Mathf.Clamp(yaw,  -spineYawLimit,  spineYawLimit);
+
+            targetOffset = Quaternion.Euler(pitch * spineWeight, yaw * spineWeight, 0f);
+        }
+        else
+        {
+            // Player not visible — return spine to neutral
+            targetOffset = Quaternion.identity;
+        }
+
+        // Smooth the offset over time (independent of the Animator's per-frame reset)
+        spineOffset = Quaternion.Slerp(spineOffset, targetOffset, Time.deltaTime * spineLookSpeed);
+
+        // Apply additively on top of the Animator's pose
+        spineBone.localRotation = animatedLocalRot * spineOffset;
+    }
+
     // ─── Vision ───────────────────────────────────────────────────────────────
 
     private IEnumerator VisionRoutine()
@@ -342,11 +403,12 @@ public class EnemyAI : MonoBehaviour
             new Vector3(toTarget.x, 0f, toTarget.z).normalized));
         if (vAngle > verticalFOV) return false;
 
-        // Line-of-sight raycast
+        // Line-of-sight raycast — hit an obstacle before reaching the target?
         if (Physics.Raycast(eye.position, toTarget.normalized, out RaycastHit hit, dist, obstacleMask | targetMask))
             return ((1 << hit.collider.gameObject.layer) & targetMask) != 0;
 
-        return false;
+        // Nothing blocked the ray → clear line of sight
+        return true;
     }
 
     // ─── State Updates ────────────────────────────────────────────────────────
@@ -484,10 +546,10 @@ public class EnemyAI : MonoBehaviour
             FaceTarget();
         }
 
-        // Track aim target toward enemy chest height
-        if (aimTarget != null)
-            aimTarget.position = Vector3.Lerp(
-                aimTarget.position,
+        // Smoothly move AimIK target toward the player's chest
+        if (aimIK != null)
+            aimIK.solver.IKPosition = Vector3.Lerp(
+                aimIK.solver.IKPosition,
                 target.position + Vector3.up * 1.2f,
                 Time.deltaTime * 10f);
 
@@ -664,13 +726,13 @@ public class EnemyAI : MonoBehaviour
             target.GetComponentInParent<IDamageable>()?.TakeDamage(melee.attackDamage);
     }
 
-    // ─── Animation Rigging ────────────────────────────────────────────────────
+    // ─── Final IK Aim ─────────────────────────────────────────────────────────
 
     private void UpdateAimRig()
     {
-        // Aim rig only active for shooting enemies
-        if (aimRig == null || combatType == CombatType.Melee) return;
-        aimRig.weight = Mathf.Lerp(aimRig.weight, targetAimWeight, Time.deltaTime * aimBlendSpeed);
+        if (aimIK == null || combatType == CombatType.Melee) return;
+        aimIK.solver.IKPositionWeight = Mathf.Lerp(
+            aimIK.solver.IKPositionWeight, targetAimWeight, Time.deltaTime * aimBlendSpeed);
     }
 
     // ─── Animation Playback ───────────────────────────────────────────────────
@@ -819,7 +881,7 @@ public class EnemyAI : MonoBehaviour
         agent.enabled   = false;
         targetAimWeight = 0f;
         isAutoFiring    = false;
-        if (aimRig != null) aimRig.weight = 0f;
+        if (aimIK != null) aimIK.solver.IKPositionWeight = 0f;
         StopAllCoroutines();
         PlayAnimOneShot(animProfile.die);
         PlaySound(deathSound);

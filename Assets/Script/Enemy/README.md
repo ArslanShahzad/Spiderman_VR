@@ -74,8 +74,8 @@ Covers state machine, vision, shooting, melee, health, ragdoll, and animation ri
 | Burst      | 3 shots (`burstInterval` apart), then `burstCooldown` | `animProfile.shoot` per shot (one-shot) |
 
 - A **Line Renderer** shows the bullet trace for `trailDuration` seconds.
-- **Animation Rigging** (`MultiAimConstraint` on `spine_02`) tilts the upper body up/down toward the
-  target chest, controlled by the **Aim Rig** weight which blends in/out per state.
+- **Final IK — AimIK** tilts the upper body toward the target chest. `IKPositionWeight` blends
+  in/out per state (0 = off during patrol, 1 = full aim during combat).
 
 ### Melee (`CombatType.Melee`)
 
@@ -281,8 +281,8 @@ again on the same object to re-wire the components.
 ## Tips & Gotchas
 
 - **NavMesh must be baked** before entering Play mode. Window → AI → Navigation → Bake.
-- **Animation Rigging**: After setup, click **Update Animation Rigging** in the RigBuilder
-  component to rebuild the rig job chain before pressing Play.
+- **Final IK AimIK**: After setup, verify the AimIK component on the enemy root has **Transform** = MuzzlePoint
+  and **Bones** contains the spine chain. The weight is driven by code — no manual weight setting needed.
 - **Ragdoll and Animator conflict**: The enemy disables its Animator on death so the physics
   ragdoll takes over. If you want a blend-out instead, replace `animator.enabled = false` in
   `EnemyHealth.Die()` with an Animator layer weight fade.

@@ -15,7 +15,7 @@ public class ContinuousMovementPhysics : MonoBehaviour
     [Header("Input Sources")]
     public InputActionProperty moveInputSource;
     public InputActionProperty turnInputSource;
-    public InputActionProperty jumpInputSource;
+ //   public InputActionProperty jumpInputSource;
 
     [Header("References")]
     public Rigidbody      rb;
@@ -45,8 +45,8 @@ public class ContinuousMovementPhysics : MonoBehaviour
         _turnInput = turnInputSource.action.ReadValue<Vector2>();
   
          CheckClimb();
-        if (jumpInputSource.action.WasPressedThisFrame())
-            _jumpPending = true;
+        // if (jumpInputSource.action.WasPressedThisFrame())
+        //     _jumpPending = true;
 
     }
 
