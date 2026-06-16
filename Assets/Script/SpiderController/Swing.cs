@@ -82,16 +82,18 @@ public class Swing : MonoBehaviour
             StartSwing();
             if(WebParticle != null && !isWebParticleActive)
             {
-                isWebParticleActive = true;
-                GameObject particleInstance = Instantiate(WebParticle, WebOrigin);
-                particleInstance.transform.position = WebOrigin.position;
-                particleInstance.transform.rotation = WebOrigin.rotation;
-                Destroy(particleInstance, 2f);
+                WebParticle.SetActive(true);
+                // isWebParticleActive = true;
+                // GameObject particleInstance = Instantiate(WebParticle, WebOrigin);
+                // particleInstance.transform.position = WebOrigin.position;
+                // particleInstance.transform.rotation = WebOrigin.rotation;
+                // Destroy(particleInstance, 2f);
             }
             // Implement swinging mechanics here, such as applying forces or moving the player towards the swingPoint.
         }
         else if(SwingAction.action.WasReleasedThisFrame())
         {
+              WebParticle.SetActive(false);
             Debug.Log("Stopped swinging.");
             isWebParticleActive = false;
             StopSwing();
@@ -213,6 +215,7 @@ public class Swing : MonoBehaviour
     {
         if (HasHit)
         {
+            
             _isShootingWeb = true;
             _shootProgress = 0f;
             _swingAge = 0f;
@@ -222,6 +225,9 @@ public class Swing : MonoBehaviour
                 _isPullingObject = true;
                 return;
             }
+
+            if(springJoint != null)
+                Destroy(springJoint);
 
             Debug.Log("Swinging to: " + swingPoint);
             springJoint = playerRigidbody.gameObject.AddComponent<SpringJoint>();

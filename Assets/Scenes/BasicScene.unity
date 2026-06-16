@@ -277,7 +277,7 @@ GameObject:
   - component: {fileID: 90177579}
   - component: {fileID: 90177581}
   - component: {fileID: 90177580}
-  m_Layer: 7
+  m_Layer: 0
   m_Name: Collider
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1412,7 +1412,7 @@ MonoBehaviour:
   lineRenderer: {fileID: 2074459833}
   objectPullForce: 30
   ropeSegments: 20
-  sagFactor: 0.04
+  sagFactor: 0.02
   shootDuration: 0.12
   swayFrequency: 8
   swayAmplitude: 0.01
@@ -1435,15 +1435,15 @@ MonoBehaviour:
       m_Name: Left Controller Position
       m_Type: 0
       m_ExpectedControlType: 
-      m_Id: 396a660c-04fc-40d6-8810-289b8067884a
+      m_Id: d4924de1-6843-4c25-8f37-2456a2613240
       m_Processors: 
       m_Interactions: 
       m_SingletonActionBindings: []
       m_Flags: 0
-    m_Reference: {fileID: -3326005586356538449, guid: c348712bda248c246b8c49b3db54643f, type: 3}
+    m_Reference: {fileID: 83097790271614945, guid: c348712bda248c246b8c49b3db54643f, type: 3}
   leftControllerPoseDriver: {fileID: 4602308929937073759}
   _isStuckToWall: 0
-  WebParticle: {fileID: 1234343446131920223, guid: 0fae84110dee04347911dc7a68b7c33b, type: 3}
+  WebParticle: {fileID: 1571560533}
   isWebParticleActive: 0
 --- !u!135 &396020500
 SphereCollider:
@@ -2099,7 +2099,7 @@ GameObject:
   - component: {fileID: 403652536}
   - component: {fileID: 5524061826371066838}
   - component: {fileID: 1476061165612111490}
-  m_Layer: 7
+  m_Layer: 0
   m_Name: Teleport Interactor
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -2586,6 +2586,16 @@ Transform:
   m_Children: []
   m_Father: {fileID: 1005838540}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &661505172 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 7904898002847524615, guid: a2ccf81a1d5b163448ebdf66b5e746d6, type: 3}
+  m_PrefabInstance: {fileID: 4221020973946336377}
+  m_PrefabAsset: {fileID: 0}
+--- !u!4 &661505173 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 4716774161297689668, guid: a2ccf81a1d5b163448ebdf66b5e746d6, type: 3}
+  m_PrefabInstance: {fileID: 4221020973946336377}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &664216463
 GameObject:
   m_ObjectHideFlags: 0
@@ -3198,7 +3208,7 @@ GameObject:
   - component: {fileID: 6678509203402368257}
   - component: {fileID: 4238984354134427361}
   - component: {fileID: 4602308929937073759}
-  m_Layer: 7
+  m_Layer: 0
   m_Name: Right Controller
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -4736,10 +4746,11 @@ Transform:
   m_GameObject: {fileID: 1264178668}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -0, y: 0.0268, z: 0.0305}
+  m_LocalPosition: {x: -0, y: 0.0268, z: 0.0008}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
-  m_Children: []
+  m_Children:
+  - {fileID: 2075614472}
   m_Father: {fileID: 740684959}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1272460554
@@ -5022,10 +5033,11 @@ Transform:
   m_GameObject: {fileID: 1381002174}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -0, y: 0.0268, z: 0.0305}
+  m_LocalPosition: {x: -0, y: 0.0299, z: -0.0001}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
-  m_Children: []
+  m_Children:
+  - {fileID: 661505173}
   m_Father: {fileID: 1185658832}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1429269476
@@ -5820,7 +5832,7 @@ GameObject:
   - component: {fileID: 942810691993239555}
   - component: {fileID: 5967689311031481405}
   - component: {fileID: 6693052529338930997}
-  m_Layer: 7
+  m_Layer: 0
   m_Name: Left Controller
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -5902,10 +5914,10 @@ MonoBehaviour:
   lineRenderer: {fileID: 1683489027}
   objectPullForce: 30
   ropeSegments: 20
-  sagFactor: 0.04
-  shootDuration: 0.5
-  swayFrequency: 2
-  swayAmplitude: 0
+  sagFactor: 0.02
+  shootDuration: 0.12
+  swayFrequency: 8
+  swayAmplitude: 0.01
   swayDamping: 2.5
   gripAction:
     m_UseReference: 1
@@ -5925,15 +5937,15 @@ MonoBehaviour:
       m_Name: Left Controller Position
       m_Type: 0
       m_ExpectedControlType: 
-      m_Id: a9adcf52-db59-431e-a782-b780859c31c7
+      m_Id: 6aa8b9d9-50cc-4921-81ac-d2c2a8a550f7
       m_Processors: 
       m_Interactions: 
       m_SingletonActionBindings: []
       m_Flags: 0
-    m_Reference: {fileID: -2024308242397127297, guid: c348712bda248c246b8c49b3db54643f, type: 3}
+    m_Reference: {fileID: -5982496924579745919, guid: c348712bda248c246b8c49b3db54643f, type: 3}
   leftControllerPoseDriver: {fileID: 6693052529338930997}
   _isStuckToWall: 0
-  WebParticle: {fileID: 1234343446131920223, guid: 0fae84110dee04347911dc7a68b7c33b, type: 3}
+  WebParticle: {fileID: 661505172}
   isWebParticleActive: 0
 --- !u!135 &1563517277
 SphereCollider:
@@ -5983,6 +5995,11 @@ Rigidbody:
   m_Interpolate: 0
   m_Constraints: 126
   m_CollisionDetection: 0
+--- !u!1 &1571560533 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 7904898002847524615, guid: a2ccf81a1d5b163448ebdf66b5e746d6, type: 3}
+  m_PrefabInstance: {fileID: 2075614471}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &1598757978
 GameObject:
   m_ObjectHideFlags: 0
@@ -6139,7 +6156,7 @@ GameObject:
   - component: {fileID: 1639163107}
   - component: {fileID: 1639163106}
   - component: {fileID: 1639163105}
-  m_Layer: 7
+  m_Layer: 0
   m_Name: Collider
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -6447,13 +6464,22 @@ LineRenderer:
       m_Curve:
       - serializedVersion: 3
         time: 0
-        value: 1
+        value: 0.50460243
         inSlope: 0
         outSlope: 0
         tangentMode: 0
         weightedMode: 0
         inWeight: 0.33333334
         outWeight: 0.33333334
+      - serializedVersion: 3
+        time: 0.9880106
+        value: 0.9171556
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
       m_PreInfinity: 2
       m_PostInfinity: 2
       m_RotationOrder: 4
@@ -7190,13 +7216,22 @@ LineRenderer:
       m_Curve:
       - serializedVersion: 3
         time: 0
-        value: 1
+        value: 0.50460243
         inSlope: 0
         outSlope: 0
         tangentMode: 0
         weightedMode: 0
         inWeight: 0.33333334
         outWeight: 0.33333334
+      - serializedVersion: 3
+        time: 0.9880106
+        value: 0.9171556
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
       m_PreInfinity: 2
       m_PostInfinity: 2
       m_RotationOrder: 4
@@ -7240,6 +7275,120 @@ LineRenderer:
   m_UseWorldSpace: 1
   m_Loop: 0
   m_ApplyActiveColorSpace: 1
+--- !u!1001 &2075614471
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 1264178669}
+    m_Modifications:
+    - target: {fileID: 2943882529456743534, guid: a2ccf81a1d5b163448ebdf66b5e746d6, type: 3}
+      propertyPath: m_Layer
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4528105649540090848, guid: a2ccf81a1d5b163448ebdf66b5e746d6, type: 3}
+      propertyPath: m_Layer
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4716774161297689668, guid: a2ccf81a1d5b163448ebdf66b5e746d6, type: 3}
+      propertyPath: m_LocalScale.x
+      value: 0.07
+      objectReference: {fileID: 0}
+    - target: {fileID: 4716774161297689668, guid: a2ccf81a1d5b163448ebdf66b5e746d6, type: 3}
+      propertyPath: m_LocalScale.y
+      value: 0.07
+      objectReference: {fileID: 0}
+    - target: {fileID: 4716774161297689668, guid: a2ccf81a1d5b163448ebdf66b5e746d6, type: 3}
+      propertyPath: m_LocalScale.z
+      value: 0.07
+      objectReference: {fileID: 0}
+    - target: {fileID: 4716774161297689668, guid: a2ccf81a1d5b163448ebdf66b5e746d6, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0.0005
+      objectReference: {fileID: 0}
+    - target: {fileID: 4716774161297689668, guid: a2ccf81a1d5b163448ebdf66b5e746d6, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0.0188
+      objectReference: {fileID: 0}
+    - target: {fileID: 4716774161297689668, guid: a2ccf81a1d5b163448ebdf66b5e746d6, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: -0.0313
+      objectReference: {fileID: 0}
+    - target: {fileID: 4716774161297689668, guid: a2ccf81a1d5b163448ebdf66b5e746d6, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 4716774161297689668, guid: a2ccf81a1d5b163448ebdf66b5e746d6, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4716774161297689668, guid: a2ccf81a1d5b163448ebdf66b5e746d6, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4716774161297689668, guid: a2ccf81a1d5b163448ebdf66b5e746d6, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4716774161297689668, guid: a2ccf81a1d5b163448ebdf66b5e746d6, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4716774161297689668, guid: a2ccf81a1d5b163448ebdf66b5e746d6, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4716774161297689668, guid: a2ccf81a1d5b163448ebdf66b5e746d6, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4960081500634143964, guid: a2ccf81a1d5b163448ebdf66b5e746d6, type: 3}
+      propertyPath: m_Layer
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6848329276068967448, guid: a2ccf81a1d5b163448ebdf66b5e746d6, type: 3}
+      propertyPath: m_Layer
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7567164665200008246, guid: a2ccf81a1d5b163448ebdf66b5e746d6, type: 3}
+      propertyPath: m_Layer
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7797347703925573984, guid: a2ccf81a1d5b163448ebdf66b5e746d6, type: 3}
+      propertyPath: m_Layer
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7904898002847524615, guid: a2ccf81a1d5b163448ebdf66b5e746d6, type: 3}
+      propertyPath: m_Name
+      value: FX_Purple_Hit_02 (1)
+      objectReference: {fileID: 0}
+    - target: {fileID: 7904898002847524615, guid: a2ccf81a1d5b163448ebdf66b5e746d6, type: 3}
+      propertyPath: m_Layer
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7904898002847524615, guid: a2ccf81a1d5b163448ebdf66b5e746d6, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8111110162114094390, guid: a2ccf81a1d5b163448ebdf66b5e746d6, type: 3}
+      propertyPath: m_Layer
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 9182032874989869761, guid: a2ccf81a1d5b163448ebdf66b5e746d6, type: 3}
+      propertyPath: m_Layer
+      value: 0
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: a2ccf81a1d5b163448ebdf66b5e746d6, type: 3}
+--- !u!4 &2075614472 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 4716774161297689668, guid: a2ccf81a1d5b163448ebdf66b5e746d6, type: 3}
+  m_PrefabInstance: {fileID: 2075614471}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &2092139007
 GameObject:
   m_ObjectHideFlags: 0
@@ -7485,7 +7634,7 @@ GameObject:
   - component: {fileID: 3779592828481505236}
   - component: {fileID: 3498251533652701996}
   - component: {fileID: 6817176943482684236}
-  m_Layer: 7
+  m_Layer: 0
   m_Name: NearFar
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -7597,7 +7746,7 @@ GameObject:
   - component: {fileID: 3954319947567048626}
   - component: {fileID: 2141651113419367940}
   - component: {fileID: 2717550567256284016}
-  m_Layer: 7
+  m_Layer: 0
   m_Name: Poke Interactor
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -7616,7 +7765,7 @@ GameObject:
   - component: {fileID: 4297486644595105095}
   - component: {fileID: 7876541751039960111}
   - component: {fileID: 5026116956898620487}
-  m_Layer: 7
+  m_Layer: 0
   m_Name: Poke
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -7791,7 +7940,7 @@ GameObject:
   - component: {fileID: 5331306174498446776}
   - component: {fileID: 1288611973573047406}
   - component: {fileID: 6175755462422205523}
-  m_Layer: 7
+  m_Layer: 0
   m_Name: Trigger
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -7807,7 +7956,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 5454069418002125551}
-  m_Layer: 7
+  m_Layer: 0
   m_Name: XRController_Thumbstick_Buttons
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -7823,7 +7972,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 2052418246349397344}
-  m_Layer: 7
+  m_Layer: 0
   m_Name: Poke Point Affordances
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -8172,7 +8321,7 @@ GameObject:
   - component: {fileID: 1538881718969776175}
   - component: {fileID: 3731946432640084534}
   - component: {fileID: 8496988744955539856}
-  m_Layer: 7
+  m_Layer: 0
   m_Name: Button_A
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -8321,7 +8470,7 @@ GameObject:
   - component: {fileID: 4409236193761680838}
   - component: {fileID: 2321328507956655962}
   - component: {fileID: 7402016983688610808}
-  m_Layer: 7
+  m_Layer: 0
   m_Name: Button_Home
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -8352,7 +8501,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 8022141472993262543}
-  m_Layer: 7
+  m_Layer: 0
   m_Name: Poke Point
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -8612,7 +8761,7 @@ GameObject:
   - component: {fileID: 4053579578688996866}
   - component: {fileID: 5456733348202759256}
   - component: {fileID: 8559622108149739411}
-  m_Layer: 7
+  m_Layer: 0
   m_Name: Near-Far Interactor
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -8662,7 +8811,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1358109966671336949}
   - component: {fileID: 6872406617616886284}
-  m_Layer: 7
+  m_Layer: 0
   m_Name: Pinch_Pointer_LOD0
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -9329,7 +9478,7 @@ GameObject:
   - component: {fileID: 2449787134232648609}
   - component: {fileID: 7878498469825609679}
   - component: {fileID: 3856033063435924123}
-  m_Layer: 7
+  m_Layer: 0
   m_Name: Teleport Interactor
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -9672,7 +9821,7 @@ GameObject:
   - component: {fileID: 1666320187427963819}
   - component: {fileID: 4343660527380267549}
   - component: {fileID: 308999862554574697}
-  m_Layer: 7
+  m_Layer: 0
   m_Name: Poke Interactor
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -10116,7 +10265,7 @@ GameObject:
   - component: {fileID: 2769229247145821721}
   - component: {fileID: 1644465351415891447}
   - component: {fileID: 7038004493746339862}
-  m_Layer: 7
+  m_Layer: 0
   m_Name: ThumbStick
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -10203,7 +10352,7 @@ GameObject:
   - component: {fileID: 1142518703981816648}
   - component: {fileID: 1267965612556440525}
   - component: {fileID: 7847124279034754362}
-  m_Layer: 7
+  m_Layer: 0
   m_Name: LineVisual
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -10421,7 +10570,7 @@ GameObject:
   - component: {fileID: 1060171319308454445}
   - component: {fileID: 2333695019824683572}
   - component: {fileID: 7634941336887306235}
-  m_Layer: 7
+  m_Layer: 0
   m_Name: Controller_Base
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -10453,7 +10602,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 5668689710579212246}
-  m_Layer: 7
+  m_Layer: 0
   m_Name: Poke Point
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -10532,7 +10681,7 @@ GameObject:
   - component: {fileID: 3867119260181151082}
   - component: {fileID: 3032088727056667164}
   - component: {fileID: 740321020431036774}
-  m_Layer: 7
+  m_Layer: 0
   m_Name: Bumper
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -10720,7 +10869,7 @@ GameObject:
   - component: {fileID: 5232879751788131015}
   - component: {fileID: 1546168729169558227}
   - component: {fileID: 8713275871895378440}
-  m_Layer: 7
+  m_Layer: 0
   m_Name: TouchPad
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -10736,7 +10885,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 2814764232981117470}
-  m_Layer: 7
+  m_Layer: 0
   m_Name: Poke Point Affordances
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -10872,7 +11021,7 @@ GameObject:
   m_Component:
   - component: {fileID: 3686088246209655276}
   - component: {fileID: 9124527055597489685}
-  m_Layer: 7
+  m_Layer: 0
   m_Name: Pinch_Pointer_LOD0
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -10888,7 +11037,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 3742546661310097267}
-  m_Layer: 7
+  m_Layer: 0
   m_Name: UniversalController
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -10907,13 +11056,122 @@ GameObject:
   - component: {fileID: 1087730404711915690}
   - component: {fileID: 857904468080612434}
   - component: {fileID: 7345600665185100850}
-  m_Layer: 7
+  m_Layer: 0
   m_Name: NearFar
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
+--- !u!1001 &4221020973946336377
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 1381002175}
+    m_Modifications:
+    - target: {fileID: 2943882529456743534, guid: a2ccf81a1d5b163448ebdf66b5e746d6, type: 3}
+      propertyPath: m_Layer
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4528105649540090848, guid: a2ccf81a1d5b163448ebdf66b5e746d6, type: 3}
+      propertyPath: m_Layer
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4716774161297689668, guid: a2ccf81a1d5b163448ebdf66b5e746d6, type: 3}
+      propertyPath: m_LocalScale.x
+      value: 0.07
+      objectReference: {fileID: 0}
+    - target: {fileID: 4716774161297689668, guid: a2ccf81a1d5b163448ebdf66b5e746d6, type: 3}
+      propertyPath: m_LocalScale.y
+      value: 0.07
+      objectReference: {fileID: 0}
+    - target: {fileID: 4716774161297689668, guid: a2ccf81a1d5b163448ebdf66b5e746d6, type: 3}
+      propertyPath: m_LocalScale.z
+      value: 0.07
+      objectReference: {fileID: 0}
+    - target: {fileID: 4716774161297689668, guid: a2ccf81a1d5b163448ebdf66b5e746d6, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0.0005
+      objectReference: {fileID: 0}
+    - target: {fileID: 4716774161297689668, guid: a2ccf81a1d5b163448ebdf66b5e746d6, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0.0188
+      objectReference: {fileID: 0}
+    - target: {fileID: 4716774161297689668, guid: a2ccf81a1d5b163448ebdf66b5e746d6, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: -0.0313
+      objectReference: {fileID: 0}
+    - target: {fileID: 4716774161297689668, guid: a2ccf81a1d5b163448ebdf66b5e746d6, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 4716774161297689668, guid: a2ccf81a1d5b163448ebdf66b5e746d6, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4716774161297689668, guid: a2ccf81a1d5b163448ebdf66b5e746d6, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4716774161297689668, guid: a2ccf81a1d5b163448ebdf66b5e746d6, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4716774161297689668, guid: a2ccf81a1d5b163448ebdf66b5e746d6, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4716774161297689668, guid: a2ccf81a1d5b163448ebdf66b5e746d6, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4716774161297689668, guid: a2ccf81a1d5b163448ebdf66b5e746d6, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4960081500634143964, guid: a2ccf81a1d5b163448ebdf66b5e746d6, type: 3}
+      propertyPath: m_Layer
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6848329276068967448, guid: a2ccf81a1d5b163448ebdf66b5e746d6, type: 3}
+      propertyPath: m_Layer
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7567164665200008246, guid: a2ccf81a1d5b163448ebdf66b5e746d6, type: 3}
+      propertyPath: m_Layer
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7797347703925573984, guid: a2ccf81a1d5b163448ebdf66b5e746d6, type: 3}
+      propertyPath: m_Layer
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7904898002847524615, guid: a2ccf81a1d5b163448ebdf66b5e746d6, type: 3}
+      propertyPath: m_Name
+      value: FX_Purple_Hit_02
+      objectReference: {fileID: 0}
+    - target: {fileID: 7904898002847524615, guid: a2ccf81a1d5b163448ebdf66b5e746d6, type: 3}
+      propertyPath: m_Layer
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7904898002847524615, guid: a2ccf81a1d5b163448ebdf66b5e746d6, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8111110162114094390, guid: a2ccf81a1d5b163448ebdf66b5e746d6, type: 3}
+      propertyPath: m_Layer
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 9182032874989869761, guid: a2ccf81a1d5b163448ebdf66b5e746d6, type: 3}
+      propertyPath: m_Layer
+      value: 0
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: a2ccf81a1d5b163448ebdf66b5e746d6, type: 3}
 --- !u!114 &4238984354134427361
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -11060,7 +11318,7 @@ GameObject:
   - component: {fileID: 56321352741452345}
   - component: {fileID: 6207282246986679121}
   - component: {fileID: 9127653035919381305}
-  m_Layer: 7
+  m_Layer: 0
   m_Name: Poke
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -11093,7 +11351,7 @@ GameObject:
   - component: {fileID: 8082068168374707050}
   - component: {fileID: 5625808486897612571}
   - component: {fileID: 2958731094951032671}
-  m_Layer: 7
+  m_Layer: 0
   m_Name: Button_B
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -11111,7 +11369,7 @@ GameObject:
   - component: {fileID: 8716131202682151427}
   - component: {fileID: 7559473368705471435}
   - component: {fileID: 5213916217955603683}
-  m_Layer: 7
+  m_Layer: 0
   m_Name: ThumbStick_Base
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -11456,7 +11714,7 @@ GameObject:
   - component: {fileID: 7983627652156126679}
   - component: {fileID: 8108794593631620434}
   - component: {fileID: 1006013889686973349}
-  m_Layer: 7
+  m_Layer: 0
   m_Name: LineVisual
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -11512,7 +11770,7 @@ GameObject:
   - component: {fileID: 4965017819252945351}
   - component: {fileID: 8384399261305188905}
   - component: {fileID: 226602744128681928}
-  m_Layer: 7
+  m_Layer: 0
   m_Name: ThumbStick
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -11898,7 +12156,7 @@ GameObject:
   m_Component:
   - component: {fileID: 6528530116096360344}
   - component: {fileID: 4883220356442315033}
-  m_Layer: 7
+  m_Layer: 0
   m_Name: Right Controller Visual
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -11961,7 +12219,7 @@ GameObject:
   - component: {fileID: 7800078424990662131}
   - component: {fileID: 4822226496847228394}
   - component: {fileID: 828042770318659621}
-  m_Layer: 7
+  m_Layer: 0
   m_Name: Controller_Base
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -12143,7 +12401,7 @@ GameObject:
   - component: {fileID: 6279084720275491508}
   - component: {fileID: 5232385154971624898}
   - component: {fileID: 7552299326059988664}
-  m_Layer: 7
+  m_Layer: 0
   m_Name: Bumper
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -12176,7 +12434,7 @@ GameObject:
   - component: {fileID: 3033141751576249625}
   - component: {fileID: 8645810084955704589}
   - component: {fileID: 1901301959520939478}
-  m_Layer: 7
+  m_Layer: 0
   m_Name: TouchPad
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -12229,7 +12487,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 5870790034999201965}
-  m_Layer: 7
+  m_Layer: 0
   m_Name: UniversalController
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -12415,7 +12673,7 @@ GameObject:
   - component: {fileID: 1342151987604935860}
   - component: {fileID: 3214423556022157509}
   - component: {fileID: 5442187230074683521}
-  m_Layer: 7
+  m_Layer: 0
   m_Name: Button_B
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -12433,7 +12691,7 @@ GameObject:
   - component: {fileID: 1908652218343544285}
   - component: {fileID: 748066791422862357}
   - component: {fileID: 3085672861425591101}
-  m_Layer: 7
+  m_Layer: 0
   m_Name: ThumbStick_Base
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -13244,7 +13502,7 @@ GameObject:
   - component: {fileID: 3131572438654134886}
   - component: {fileID: 8316776259762996144}
   - component: {fileID: 3980547574152766349}
-  m_Layer: 7
+  m_Layer: 0
   m_Name: Trigger
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -13260,7 +13518,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 2970600110262002993}
-  m_Layer: 7
+  m_Layer: 0
   m_Name: XRController_Thumbstick_Buttons
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -13293,7 +13551,7 @@ GameObject:
   - component: {fileID: 6897771660909505048}
   - component: {fileID: 4809296605629890692}
   - component: {fileID: 301795086329099302}
-  m_Layer: 7
+  m_Layer: 0
   m_Name: Button_Home
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -13427,7 +13685,7 @@ GameObject:
   - component: {fileID: 8634028271227932657}
   - component: {fileID: 5855673145192472040}
   - component: {fileID: 1684997223296829006}
-  m_Layer: 7
+  m_Layer: 0
   m_Name: Button_A
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -13700,7 +13958,7 @@ GameObject:
   - component: {fileID: 6436123940256094365}
   - component: {fileID: 3074471629837064903}
   - component: {fileID: 1718513915484926220}
-  m_Layer: 7
+  m_Layer: 0
   m_Name: Near-Far Interactor
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -14134,7 +14392,7 @@ GameObject:
   m_Component:
   - component: {fileID: 8366379413480292051}
   - component: {fileID: 3838591908271670329}
-  m_Layer: 7
+  m_Layer: 0
   m_Name: Left Controller Visual
   m_TagString: Untagged
   m_Icon: {fileID: 0}
